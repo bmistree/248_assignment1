@@ -4,15 +4,15 @@
 #include "ObjElement.hpp"
 #include <string>
 #include <vector>
+#include <unordered_map>
 
 class ObjReader
 {
 public:
-    /**
-       @param {std::string} filename --- Reads the .obj file stored by filename
-       and returns all elements it contains as a vector.
-     */
-    static std::vector<ObjElement*> read_object_file(std::string filename);
+    static void read_object_file(
+        std::string filename,
+        std::unordered_map<Vertex::VertexID,Vertex*> & vertex_map,
+        std::vector<Face*> & face_list);
 
 private:
 
@@ -23,6 +23,14 @@ private:
        malformed, or comment).
      */
     static ObjElement* read_element_from_string(std::string line);
+
+    /**
+       @param {std::string} filename --- Reads the .obj file stored by filename
+       and returns all elements it contains as a vector.
+     */
+    static std::vector<ObjElement*> read_all_file_elements(std::string filename);
+
+    
 };
 
 #endif

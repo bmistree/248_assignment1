@@ -27,12 +27,16 @@ public:
      */
     static Vertex* construct_from_line(std::string line);
     virtual void pretty_print() const;
+
+    VertexID get_vid()
+    {
+        return vid;
+    }
     
 private:
     Vertex(GLfloat x, GLfloat y, GLfloat z, GLfloat w=1.0);
     GLfloat x, y, z, w;
     VertexID vid;
-    
 };
 
 class TextureCoordinate : public ObjElement

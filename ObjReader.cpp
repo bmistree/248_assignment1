@@ -3,7 +3,36 @@
 #include <iostream>
 #include <string>
 
-std::vector<ObjElement*> ObjReader::read_object_file(std::string filename)
+
+
+void ObjReader::read_object_file(
+    std::string filename,
+    std::unordered_map<Vertex::VertexID,Vertex*> & vertex_map,
+    std::vector<Face*> & face_list)    
+{
+    std::vector<ObjElement*> all_elements = read_all_file_elements(filename);
+    for (std::vector<ObjElement*>::iterator iter = all_elements.begin();
+         iter != all_elements.end(); ++iter)
+    {
+        Vertex* vert = dynamic_cast<Vertex*> (*iter);
+        if (vert != NULL)
+        {
+            vertex_map[vert->get_vid()] = vert;
+            continue;
+        }
+
+        Face* face = dynamic_cast<Face*> (*iter);
+        if (face != NULL)
+        {
+            face_list.push_back(face);
+            // putting continue in in case add more rules later.
+            continue;
+        }
+    }
+}
+
+
+std::vector<ObjElement*> ObjReader::read_all_file_elements(std::string filename)
 {
     std::vector<ObjElement*> all_elements;
     
