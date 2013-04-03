@@ -2,6 +2,7 @@
 #include <sstream>
 #include <GL/gl.h>
 #include <stdio.h>
+#include <iostream>
 
 /**
    Returns copy of string with no whitespace at beginning or end of string.
@@ -29,23 +30,28 @@ static void remove_comment(std::string& line)
 }
 
 
-ListOfVertices::ListOfVertices(GLfloat _x, GLfloat _y, GLfloat _z, GLfloat _w)
+Vertex::Vertex(GLfloat _x, GLfloat _y, GLfloat _z, GLfloat _w)
  : x(_x),
    y(_y),
    z(_z),
    w(_w)
-{}
-
-
-ListOfVertices::~ListOfVertices()
-{}
-
-void ListOfVertices::pretty_print() const
 {
-    printf("List of vertices: x=%f y=%f z=%f w=%f",x,y,z,w);
+    static VertexID _vid = 0;
+    _vid += 1;
+    vid = _vid;
 }
 
-ListOfVertices* ListOfVertices::construct_from_line(std::string line)
+
+Vertex::~Vertex()
+{}
+
+void Vertex::pretty_print() const
+{
+    std::cout<<"List of texture coordinates: id="<<
+        vid<<" x="<<x<<" y="<<y<<" z="<<z<<" w="<<w;
+}
+
+Vertex* Vertex::construct_from_line(std::string line)
 {
     remove_comment(line);
     trim(line);
@@ -75,10 +81,101 @@ ListOfVertices* ListOfVertices::construct_from_line(std::string line)
             tokenizer >> w;
 
         
-        return new ListOfVertices(
+        return new Vertex(
             (GLfloat)x, (GLfloat)y, (GLfloat)z, (GLfloat)w);
     }
     
+    return NULL;
+}
+
+
+
+TextureCoordinate::TextureCoordinate(GLfloat _u, GLfloat _v, GLfloat _w)
+ : u(_u),
+   v(_v),
+   w(_w)
+{}
+TextureCoordinate::~TextureCoordinate()
+{}
+void TextureCoordinate::pretty_print() const
+{
+    printf("List of vertices: u=%f v=%f w=%f",u,v,w);
+}
+
+TextureCoordinate* TextureCoordinate::construct_from_line(std::string line)
+{
+    remove_comment(line);
+    trim(line);
+
+    // using 2 here because, we must check at least second index to ensure that
+    // not a texture coordinate or normal
+    if (line.size() < 2)
+        return NULL;
+    
+    if ((line[0] == 'v') && (line[1] == 't'))
+    {
+        // start from 1 to remove command characters, 'vt'.
+        std::string to_tokenize = line.substr(2);
+        std::istringstream tokenizer(to_tokenize);
+        float u,v,w;
+        w = 0.0;
+        tokenizer >> u;
+        tokenizer >> v;
+        if (! tokenizer.eof())
+            tokenizer >> w;
+
+        return new TextureCoordinate(
+            (GLfloat)u, (GLfloat)v, (GLfloat)w);
+    }
+    return NULL;
+}
+
+/************* FACE *************/
+Face::Face(std::vector<Vertex::VertexID> vert_index_vec)
+ :vert_ids(vert_index_vec)
+{}
+
+Face::~Face()
+{}
+
+void Face::pretty_print() const
+{
+    printf("List of face vertices:");
+    for (std::vector<Vertex::VertexID>::const_iterator citer = vert_ids.begin();
+         citer != vert_ids.end(); ++citer)
+    {
+        std::cout<<"   vert: "<<*citer;
+    }
+}
+
+Face* Face::construct_from_line(std::string line)
+{
+    remove_comment(line);
+    trim(line);
+
+    // using 2 here because, we must check at least second index to ensure that
+    // not a texture coordinate or normal
+    if (line.size() < 1)
+        return NULL;
+    
+    if (line[0] == 'f')
+    {
+        // start from 1 to remove command character, 'f'.
+        std::string to_tokenize = line.substr(1);
+        std::istringstream tokenizer(to_tokenize);
+        // FIXME: may want to pass as pointer instead to avoid copy in
+        // constructor.
+        std::vector<Vertex::VertexID> vert_ids;
+
+        while (! tokenizer.eof())
+        {
+            Vertex::VertexID vid;
+            tokenizer >> vid;
+            vert_ids.push_back(vid);
+        }
+
+        return new Face(vert_ids);
+    }
     return NULL;
 }
 

@@ -26,9 +26,17 @@ std::vector<ObjElement*> ObjReader::read_object_file(std::string filename)
 ObjElement* ObjReader::read_element_from_string(std::string line_to_read)
 {
     ObjElement* element = NULL;
-    element = ListOfVertices::construct_from_line(line_to_read);
+    element = Vertex::construct_from_line(line_to_read);
     if (element != NULL)
         return element;
 
+    element = TextureCoordinate::construct_from_line(line_to_read);
+    if (element != NULL)
+        return element;
+
+    element = Face::construct_from_line(line_to_read);
+    if (element != NULL)
+        return element;
+    
     return element;
 }
