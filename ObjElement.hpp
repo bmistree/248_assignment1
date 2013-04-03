@@ -24,7 +24,7 @@ public:
        @returns{ObjElement*} --- NULL if line did not match rule for this
        ObjElement.  Otherwise, a pointer to a newly-constructed object element.
      */
-    static ListOfVertices* construct_from_line(const std::string& line);
+    static ListOfVertices* construct_from_line(std::string line);
     
     virtual void pretty_print() const;
     

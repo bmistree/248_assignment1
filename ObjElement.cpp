@@ -6,25 +6,26 @@
 /**
    Returns copy of string with no whitespace at beginning or end of string.
  */
-static std::string trim(const std::string& line)
+static void trim(std::string& line)
 {
     std::size_t index_str_front = line.find_first_not_of(" \t");
     if (index_str_front != std::string::npos)
     {
         std::size_t index_str_end = line.find_last_not_of(" \t");
-        return line.substr(index_str_front,index_str_end);
-    }    
-    return std::string("");
+        line.replace(index_str_end + 1,line.size(),"");
+        line.replace(0,index_str_front,"");
+    }
 }
 
 /**
-   Assumes that trimmed_line is already trimmed.
+   Comment begins at '#' and ends at end of line.  Removes everything in the
+   comment from begin to end of line.
  */
-static bool is_comment(std::string& trimmed_line)
+static void remove_comment(std::string& line)
 {
-    if (trimmed_line.size() > 0)
-        return trimmed_line[0] == OBJ_FILE_COMMENT_START;
-    return false;
+    std::size_t index_comment_begin = line.find_first_of(OBJ_FILE_COMMENT_START);
+    if (index_comment_begin != std::string::npos)
+        line.replace(index_comment_begin,line.size(),"");
 }
 
 
@@ -44,29 +45,27 @@ void ListOfVertices::pretty_print() const
     printf("List of vertices: x=%f y=%f z=%f w=%f",x,y,z,w);
 }
 
-ListOfVertices* ListOfVertices::construct_from_line(const std::string& line)
+ListOfVertices* ListOfVertices::construct_from_line(std::string line)
 {
-    // only need to create the regular expression once
-
-    std::string trimmed_string = trim(line);
+    remove_comment(line);
+    trim(line);
 
     // using 2 here because, we must check at least second index to ensure that
     // not a texture coordinate or normal
-    if (trimmed_string.size() < 2)
+    if (line.size() < 2)
         return NULL;
     
-    if (is_comment(trimmed_string))
-        return NULL;
-    
-    if ((trimmed_string[0] == 'v') &&
+    if ((line[0] == 'v') &&
 
         // ensure that not a texture or normal coordinate, both of which also
         // begin with 'v'.  FIXME: this is sort of gross to hard-code.  Maybe
         // figure out a better approach later.
-        (trimmed_string[1] != 't') &&
-        (trimmed_string[1] != 'n'))
+        (line[1] != 't') &&
+        (line[1] != 'n'))
     {
-        std::istringstream tokenizer(trimmed_string.substr(1));
+        // start from 1 to remove command character, 'v'.
+        std::string to_tokenize = line.substr(1);
+        std::istringstream tokenizer(to_tokenize);
         float x,y,z,w;
         w = 1.0;
         tokenizer >> x;
@@ -74,6 +73,7 @@ ListOfVertices* ListOfVertices::construct_from_line(const std::string& line)
         tokenizer >> z;
         if (! tokenizer.eof())
             tokenizer >> w;
+
         
         return new ListOfVertices(
             (GLfloat)x, (GLfloat)y, (GLfloat)z, (GLfloat)w);
