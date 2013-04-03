@@ -1,8 +1,10 @@
 #include "ObjElement.hpp"
 #include <sstream>
 #include <GL/gl.h>
+#include <GL/glut.h>
 #include <stdio.h>
 #include <iostream>
+#include <cassert>
 
 /**
    Returns copy of string with no whitespace at beginning or end of string.
@@ -137,6 +139,24 @@ Face::Face(std::vector<Vertex::VertexID> vert_index_vec)
 
 Face::~Face()
 {}
+
+void Face::draw_face(const std::unordered_map<Vertex::VertexID,Vertex*>& vert_map) const
+{
+    glBegin(GL_LINE_LOOP);
+    for (std::vector<Vertex::VertexID>::const_iterator citer = vert_ids.begin();
+         citer != vert_ids.end(); ++citer)
+    {
+        Vertex::VertexID vid = *citer;
+        std::unordered_map<Vertex::VertexID,Vertex*>::const_iterator vert_iter = vert_map.find(vid);
+        if (vert_iter == vert_map.end())
+            assert(false);
+        
+        Vertex* vert = vert_iter->second;
+        // actually draw
+        glVertex4f(vert->get_x(),vert->get_y(),vert->get_z(), vert->get_w());
+    }
+    glEnd();
+}
 
 void Face::pretty_print() const
 {

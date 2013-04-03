@@ -6,6 +6,7 @@
 #include <string>
 #include <GL/gl.h>
 #include <vector>
+#include <unordered_map>
 
 // Pure virtual base class
 class ObjElement
@@ -32,11 +33,28 @@ public:
     {
         return vid;
     }
+    GLfloat get_x()
+    {
+        return x;
+    }
+    GLfloat get_y()
+    {
+        return y;
+    }    
+    GLfloat get_z()
+    {
+        return z;
+    }
+    GLfloat get_w()
+    {
+        return w;
+    }
     
 private:
     Vertex(GLfloat x, GLfloat y, GLfloat z, GLfloat w=1.0);
     GLfloat x, y, z, w;
     VertexID vid;
+
 };
 
 class TextureCoordinate : public ObjElement
@@ -57,6 +75,8 @@ public:
     ~Face();
     static Face* construct_from_line(std::string line);
     virtual void pretty_print() const;
+
+    void draw_face(const std::unordered_map<Vertex::VertexID,Vertex*>& vert_map) const;
     
 private:
     Face(std::vector <Vertex::VertexID> vert_index_vec);
