@@ -142,6 +142,7 @@ Face::~Face()
 
 void Face::draw_face(const std::unordered_map<Vertex::VertexID,Vertex*>& vert_map) const
 {
+    glColor3f(.5f,.5f,.5f);
     glBegin(GL_LINE_LOOP);
     for (std::vector<Vertex::VertexID>::const_iterator citer = vert_ids.begin();
          citer != vert_ids.end(); ++citer)

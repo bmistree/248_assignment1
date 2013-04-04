@@ -11,10 +11,12 @@ PROGRAMS= read_file_test
 %.o: %.cpp $(DEPS)
 	$(COMPILER) -c -o $@ $< $(FLAGS) $(LIBS) 
 
-read_file_test: $(OBJ_BASIC) TestReader.o
+
+load_file_test: $(OBJ_BASIC) LoadFile.o DrawingGlobal.o
 	$(COMPILER) -o $@ $^ $(FLAGS) $(LIBS) 
 
-load_file_test: $(OBJ_BASIC) LoadFile.o
+
+read_file_test: $(OBJ_BASIC) TestReader.o
 	$(COMPILER) -o $@ $^ $(FLAGS) $(LIBS) 
 
 .PHONY : clean

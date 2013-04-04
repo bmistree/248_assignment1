@@ -7,8 +7,12 @@
 #include <unordered_map>
 #include <GL/glut.h>
 #include <GL/gl.h>
+#include "DrawingGlobal.hpp"
 #define WINDOW_WIDTH 500
 #define WINDOW_HEIGHT 500
+
+// Also responsible for cleanup of all data.
+DrawingGlobal* drawing_global = NULL;
 
 void setup_gl(const std::string& filename, int argc,char** argv);
 
@@ -26,10 +30,14 @@ int main(int argc, char** argv)
     std::unordered_map<Vertex::VertexID,Vertex*> vertex_map;
     ObjReader::read_object_file(filename,vertex_map,face_list);
 
+    drawing_global = new DrawingGlobal(vertex_map,face_list);
+    
     setup_gl(filename,argc,argv);
     draw_faces(face_list,vertex_map);
 
     glutMainLoop();
+
+    delete drawing_global;
     return 0;
 }
 
@@ -46,14 +54,8 @@ void setup_gl(const std::string &filename, int argc, char** argv)
 void render_frame(void)
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    // just draw a single triangle.
-    glBegin(GL_TRIANGLES);
-    glVertex3f(-0.5,-0.5,0.0);
-    glVertex3f(0.5,0.0,0.0);
-    glVertex3f(0.0,0.5,0.0);
-    glEnd();
-
+    glLoadIdentity();
+    drawing_global->render_frame();
     glutSwapBuffers();
 }
 
