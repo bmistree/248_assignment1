@@ -8,8 +8,8 @@
 #include <GL/glut.h>
 #include <GL/gl.h>
 #include "DrawingGlobal.hpp"
-#define WINDOW_WIDTH 500
-#define WINDOW_HEIGHT 500
+#define WINDOW_WIDTH 640
+#define WINDOW_HEIGHT 480
 
 // Also responsible for cleanup of all data.
 DrawingGlobal* drawing_global = NULL;
@@ -21,6 +21,7 @@ void draw_faces(
     std::unordered_map<Vertex::VertexID,Vertex*>& vertex_map);
 
 void render_frame(void);
+GLfloat gl_max(GLfloat a, GLfloat b);
 
 int main(int argc, char** argv)
 {
@@ -48,15 +49,44 @@ void setup_gl(const std::string &filename, int argc, char** argv)
     glutInitWindowSize(WINDOW_WIDTH,WINDOW_HEIGHT);
     glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
     glutCreateWindow(filename.c_str());
+
+    glClearColor(0.0f,0.0f,.7f,1.0f);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    // to set units of model to pixels:
+    // gluOrtho2D(0,WINDOW_WIDTH,0,WINDOW_HEIGHT);
+    // to set units of model to fraction of window (ie, 0 to 1):
+    // gluOrtho2D(0,1,0,1);
+
+    // don't want
+    GLfloat max_dim = gl_max((GLfloat) WINDOW_WIDTH, (GLfloat) WINDOW_HEIGHT);
+    GLfloat normalized_window_width = ((GLfloat)WINDOW_WIDTH)/max_dim;
+    GLfloat normalized_window_height = ((GLfloat)WINDOW_HEIGHT)/max_dim;
+    // gluOrtho2D(0, normalized_window_width, 0, normalized_window_height);
+    // left and right clipping planes, bottom and top clipping planes, near and
+    // far clipping planes
+    glOrtho(0.f, normalized_window_width, 0.f, normalized_window_height,-1.0f,1.0f);
+    // what part of window we want to render to.
+    glViewport(0,0,WINDOW_WIDTH,WINDOW_HEIGHT);
     glutDisplayFunc(render_frame);
+}
+
+GLfloat gl_max(GLfloat a, GLfloat b)
+{
+    if (a < b)
+        return b;
+    return a;
 }
 
 void render_frame(void)
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glPushMatrix();
     glLoadIdentity();
     drawing_global->render_frame();
     glutSwapBuffers();
+    glPopMatrix();
+    glFlush();
 }
 
 
