@@ -133,7 +133,7 @@ TextureCoordinate* TextureCoordinate::construct_from_line(std::string line)
 }
 
 /************* FACE *************/
-Face::Face(std::vector<Vertex::VertexID> vert_index_vec)
+Face::Face(const std::vector<Vertex::VertexID>& vert_index_vec)
  :vert_ids(vert_index_vec)
 {}
 
@@ -200,3 +200,48 @@ Face* Face::construct_from_line(std::string line)
     return NULL;
 }
 
+void Face::centroid_and_maxes(
+    GLfloat& cx, GLfloat& cy, GLfloat& cz,
+    GLfloat& maxx,GLfloat& maxy, GLfloat& maxz,
+    GLfloat& minx,GLfloat& miny, GLfloat& minz,
+    const std::unordered_map<Vertex::VertexID,Vertex*>& vert_map) const
+{
+    cx = cy = cz = 0;
+    
+    for (std::vector<Vertex::VertexID>::const_iterator citer = vert_ids.begin();
+         citer != vert_ids.end(); ++citer)
+    {
+        // note: the following line of code is only acceptable because we *know*
+        // that the vertex must be in the map.
+        Vertex* vert = vert_map.find(*citer)->second;
+        GLfloat vx,vy,vz;
+        vx = vert->get_x();
+        vy = vert->get_y();
+        vz = vert->get_z();
+        cx += vx;
+        cy += vy;
+        cz += vz;
+
+        if (citer == vert_ids.begin())
+        {
+            maxx = vx;
+            maxy = vy;
+            maxz = vz;
+            minx = vx;
+            miny = vy;
+            minz = vz;
+        }
+
+        if (maxx < vx) maxx = vx;
+        if (maxy < vy) maxy = vy;
+        if (maxz < vz) maxz = vz;
+        
+        if (minx > vx) minx = vx;
+        if (miny > vy) miny = vy;
+        if (minz > vz) minz = vz;
+    }
+
+    cx /= ((GLfloat) vert_ids.size());
+    cy /= ((GLfloat) vert_ids.size());
+    cz /= ((GLfloat) vert_ids.size());
+}

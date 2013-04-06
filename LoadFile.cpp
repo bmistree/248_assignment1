@@ -51,23 +51,31 @@ void setup_gl(const std::string &filename, int argc, char** argv)
     glutCreateWindow(filename.c_str());
 
     glClearColor(0.0f,0.0f,.7f,1.0f);
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
     // to set units of model to pixels:
     // gluOrtho2D(0,WINDOW_WIDTH,0,WINDOW_HEIGHT);
     // to set units of model to fraction of window (ie, 0 to 1):
     // gluOrtho2D(0,1,0,1);
 
     // don't want
-    GLfloat max_dim = gl_max((GLfloat) WINDOW_WIDTH, (GLfloat) WINDOW_HEIGHT);
-    GLfloat normalized_window_width = ((GLfloat)WINDOW_WIDTH)/max_dim;
-    GLfloat normalized_window_height = ((GLfloat)WINDOW_HEIGHT)/max_dim;
+    // GLfloat max_dim = gl_max((GLfloat) WINDOW_WIDTH, (GLfloat) WINDOW_HEIGHT);
+    // GLfloat normalized_window_width = ((GLfloat)WINDOW_WIDTH)/max_dim;
+    // GLfloat normalized_window_height = ((GLfloat)WINDOW_HEIGHT)/max_dim;
     // gluOrtho2D(0, normalized_window_width, 0, normalized_window_height);
     // left and right clipping planes, bottom and top clipping planes, near and
     // far clipping planes
-    glOrtho(0.f, normalized_window_width, 0.f, normalized_window_height,-1.0f,1.0f);
     // what part of window we want to render to.
     glViewport(0,0,WINDOW_WIDTH,WINDOW_HEIGHT);
+
+    
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluPerspective(
+        20.f, // angle to top from center
+        ((GLfloat)WINDOW_WIDTH) / ((GLfloat) WINDOW_HEIGHT), //aspect ratio
+        1.f, // dist to near clip plane
+        100.f // dist to far clip plane
+    );
+    
     glutDisplayFunc(render_frame);
 }
 

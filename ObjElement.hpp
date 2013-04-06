@@ -29,23 +29,23 @@ public:
     static Vertex* construct_from_line(std::string line);
     virtual void pretty_print() const;
 
-    VertexID get_vid()
+    VertexID get_vid() const
     {
         return vid;
     }
-    GLfloat get_x()
+    GLfloat get_x() const
     {
         return x;
     }
-    GLfloat get_y()
+    GLfloat get_y() const
     {
         return y;
     }    
-    GLfloat get_z()
+    GLfloat get_z() const
     {
         return z;
     }
-    GLfloat get_w()
+    GLfloat get_w() const
     {
         return w;
     }
@@ -77,9 +77,15 @@ public:
     virtual void pretty_print() const;
 
     void draw_face(const std::unordered_map<Vertex::VertexID,Vertex*>& vert_map) const;
+    void centroid_and_maxes(
+        GLfloat& cx, GLfloat& cy, GLfloat& cz,
+        GLfloat& maxx,GLfloat& maxy, GLfloat& maxz,
+        GLfloat& minx,GLfloat& miny, GLfloat& minz,
+        const std::unordered_map<Vertex::VertexID,Vertex*>& vert_map) const;
+    
     
 private:
-    Face(std::vector <Vertex::VertexID> vert_index_vec);
+    Face(const std::vector <Vertex::VertexID>& vert_index_vec);
     std::vector<Vertex::VertexID>  vert_ids;
 };
 
