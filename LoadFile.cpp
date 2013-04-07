@@ -37,10 +37,8 @@ int main(int argc, char** argv)
     drawing_global = new DrawingGlobal(vertex_map,face_list);
     
     setup_gl(filename,argc,argv,drawing_global);
-    draw_faces(face_list,vertex_map);
 
     glutMainLoop();
-
     delete drawing_global;
     return 0;
 }
