@@ -25,6 +25,8 @@ void draw_faces(
 
 void render_frame(void);
 GLfloat gl_max(GLfloat a, GLfloat b);
+void keyboard_func(unsigned char key,int x, int y);
+void idle_func();
 
 int main(int argc, char** argv)
 {
@@ -53,8 +55,11 @@ void setup_gl(const std::string &filename, int argc, char** argv,DrawingGlobal* 
     
     glClearColor(0.0f,0.0f,.7f,1.0f);
     glViewport(0,0,WINDOW_WIDTH,WINDOW_HEIGHT);
-    glutDisplayFunc(render_frame);
     dg->set_window_width_height(WINDOW_WIDTH,WINDOW_HEIGHT);
+    
+    glutDisplayFunc(render_frame);
+    glutKeyboardFunc(keyboard_func);
+    glutIdleFunc(idle_func);
 }
 
 GLfloat gl_max(GLfloat a, GLfloat b)
@@ -63,6 +68,18 @@ GLfloat gl_max(GLfloat a, GLfloat b)
         return b;
     return a;
 }
+
+void keyboard_func(
+    unsigned char key,int x, int y)
+{
+    drawing_global->keyboard_func(key,x,y);
+}
+
+void idle_func()
+{
+    drawing_global->idle_func();
+}
+
 
 void render_frame(void)
 {

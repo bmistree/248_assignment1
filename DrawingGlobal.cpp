@@ -10,8 +10,12 @@ DrawingGlobal::DrawingGlobal(
         std::unordered_map<Vertex::VertexID, Vertex*>& _vertex_map,
         std::vector<Face*>& _face_list)
  : vertex_map(_vertex_map),
-   face_list(_face_list)
+   face_list(_face_list),
+   eye_x(INITIAL_EYE_X),
+   eye_y(INITIAL_EYE_Y),
+   eye_z(INITIAL_EYE_Z)
 {
+    // Calculate obj centroid and scale image
     centroid_x = 0;
     centroid_y = 0;
     centroid_z = 0;
@@ -19,11 +23,9 @@ DrawingGlobal::DrawingGlobal(
     max_x = 0;
     max_y = 0;
     max_z = 0;
-
     min_x = 0;
     min_y = 0;
     min_z = 0;
-
 
     for (std::vector<Face*>::const_iterator citer = face_list.begin();
          citer != face_list.end(); ++citer)
@@ -62,6 +64,7 @@ DrawingGlobal::DrawingGlobal(
     centroid_x /= ((GLfloat) face_list.size());
     centroid_y /= ((GLfloat) face_list.size());
     centroid_z /= ((GLfloat) face_list.size());
+
 }
 
 void DrawingGlobal::set_window_width_height(
@@ -92,6 +95,27 @@ DrawingGlobal::~DrawingGlobal()
     face_list.clear();
 }
 
+void DrawingGlobal::keyboard_func(unsigned char key,int x, int y)
+{
+    if (key == 'i')
+        eye_z -= INCREMENT_POS_ON_KEY;
+    else if (key == 'k')
+        eye_z += INCREMENT_POS_ON_KEY;
+    else if (key == 'l')
+        eye_x += INCREMENT_POS_ON_KEY;
+    else if (key == 'j')
+        eye_x -= INCREMENT_POS_ON_KEY;
+    else if (key == 'w')
+        eye_y += INCREMENT_POS_ON_KEY;
+    else if (key == 's')
+        eye_y -= INCREMENT_POS_ON_KEY;
+}
+
+void DrawingGlobal::idle_func()
+{
+    glutPostRedisplay();
+}
+
 
 void DrawingGlobal::render_frame()
 {
@@ -100,7 +124,7 @@ void DrawingGlobal::render_frame()
     gluPerspective(
         PERSPECTIVE_NEAR_PLANE_ANGLE,  // angle to top from center
         (window_width) / (window_height), //aspect ratio
-        .1f, // dist to near clip plane
+        .01f, // dist to near clip plane
         100.f // dist to far clip plane
     );
 
@@ -108,13 +132,14 @@ void DrawingGlobal::render_frame()
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     gluLookAt(
-        // eye is positioned at 7.5z
-        0.f,0.f,7.5f,
-        // 0.f,0.f,.5f,
-        // looking at origin
-        0.f,0.f,0.f,
+        // eye positioning
+        eye_x,eye_y,eye_z,
+        eye_x ,eye_y, eye_z - 1.f,
+        // // looking at origin
+        // 0.f,0.f,0.f,
         // camera is oriented so that it's top is in the y direction
         0.f,1.f,0.f);
+    
 
     
     glTranslatef(-centroid_x,-centroid_y,-centroid_z);

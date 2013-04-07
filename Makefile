@@ -12,7 +12,7 @@ PROGRAMS= read_file_test
 	$(COMPILER) -c -o $@ $< $(FLAGS) $(LIBS) 
 
 
-load_file_test: $(OBJ_BASIC) LoadFile.o DrawingGlobal.o
+load_file_test: $(OBJ_BASIC) LoadFile.o DrawingGlobal.o DrawingGlobal.hpp
 	$(COMPILER) -o $@ $^ $(FLAGS) $(LIBS) 
 
 
