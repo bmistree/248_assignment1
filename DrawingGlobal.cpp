@@ -4,6 +4,7 @@
 #include "ObjElement.hpp"
 #include <GL/gl.h>
 #include <GL/glut.h>
+#include <iostream>
 
 DrawingGlobal::DrawingGlobal(
         std::unordered_map<Vertex::VertexID, Vertex*>& _vertex_map,
@@ -63,6 +64,13 @@ DrawingGlobal::DrawingGlobal(
     centroid_z /= ((GLfloat) face_list.size());
 }
 
+void DrawingGlobal::set_window_width_height(
+    GLfloat _window_width,GLfloat _window_height)
+{
+    window_width = _window_width;
+    window_height = _window_height;
+}
+
 DrawingGlobal::~DrawingGlobal()
 {
     // free memory associated with vertex map
@@ -89,27 +97,31 @@ void DrawingGlobal::render_frame()
 {
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
+    gluPerspective(
+        PERSPECTIVE_NEAR_PLANE_ANGLE,  // angle to top from center
+        (window_width) / (window_height), //aspect ratio
+        .1f, // dist to near clip plane
+        100.f // dist to far clip plane
+    );
+
+
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
     gluLookAt(
-        // eye is positioned at 5z
-        // 0.f,0.f,1.2f,
-        0.f,0.f,3.2f,
-       // 0.f,0.f,.5f,
+        // eye is positioned at 7.5z
+        0.f,0.f,7.5f,
+        // 0.f,0.f,.5f,
         // looking at origin
         0.f,0.f,0.f,
         // camera is oriented so that it's top is in the y direction
         0.f,1.f,0.f);
+
     
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity(); // clear current matrix
     glTranslatef(-centroid_x,-centroid_y,-centroid_z);
-    // glTranslatef(centroid_x,centroid_y,centroid_z);
     glColor3f(.5,.5,.5);
     for (std::vector<Face*>::const_iterator citer = face_list.begin();
          citer != face_list.end(); ++citer)
     {
         (*citer)->draw_face(vertex_map);
     }
-
-    
-    
 }

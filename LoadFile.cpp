@@ -14,7 +14,10 @@
 // Also responsible for cleanup of all data.
 DrawingGlobal* drawing_global = NULL;
 
-void setup_gl(const std::string& filename, int argc,char** argv);
+void setup_gl(
+    const std::string& filename, int argc,char** argv,
+    DrawingGlobal* dg);
+
 
 void draw_faces(
     std::vector<Face*>&face_list,
@@ -33,7 +36,7 @@ int main(int argc, char** argv)
 
     drawing_global = new DrawingGlobal(vertex_map,face_list);
     
-    setup_gl(filename,argc,argv);
+    setup_gl(filename,argc,argv,drawing_global);
     draw_faces(face_list,vertex_map);
 
     glutMainLoop();
@@ -42,41 +45,18 @@ int main(int argc, char** argv)
     return 0;
 }
 
-void setup_gl(const std::string &filename, int argc, char** argv)
+void setup_gl(const std::string &filename, int argc, char** argv,DrawingGlobal* dg)
 {
     glutInit(&argc,argv);
     glutInitWindowPosition(-1,-1); // leaves window system to decide
     glutInitWindowSize(WINDOW_WIDTH,WINDOW_HEIGHT);
     glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
     glutCreateWindow(filename.c_str());
-
+    
     glClearColor(0.0f,0.0f,.7f,1.0f);
-    // to set units of model to pixels:
-    // gluOrtho2D(0,WINDOW_WIDTH,0,WINDOW_HEIGHT);
-    // to set units of model to fraction of window (ie, 0 to 1):
-    // gluOrtho2D(0,1,0,1);
-
-    // don't want
-    // GLfloat max_dim = gl_max((GLfloat) WINDOW_WIDTH, (GLfloat) WINDOW_HEIGHT);
-    // GLfloat normalized_window_width = ((GLfloat)WINDOW_WIDTH)/max_dim;
-    // GLfloat normalized_window_height = ((GLfloat)WINDOW_HEIGHT)/max_dim;
-    // gluOrtho2D(0, normalized_window_width, 0, normalized_window_height);
-    // left and right clipping planes, bottom and top clipping planes, near and
-    // far clipping planes
-    // what part of window we want to render to.
     glViewport(0,0,WINDOW_WIDTH,WINDOW_HEIGHT);
-
-    
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluPerspective(
-        20.f, // angle to top from center
-        ((GLfloat)WINDOW_WIDTH) / ((GLfloat) WINDOW_HEIGHT), //aspect ratio
-        1.f, // dist to near clip plane
-        100.f // dist to far clip plane
-    );
-    
     glutDisplayFunc(render_frame);
+    dg->set_window_width_height(WINDOW_WIDTH,WINDOW_HEIGHT);
 }
 
 GLfloat gl_max(GLfloat a, GLfloat b)
