@@ -52,7 +52,7 @@ public:
     }
     
 private:
-    Vertex(GLfloat x, GLfloat y, GLfloat z, GLfloat w=1.0);
+    Vertex(GLfloat x, GLfloat y, GLfloat z, GLfloat w=1.0f);
     Point4 vert_pt;
     VertexID vid;
 
@@ -89,5 +89,28 @@ private:
     std::vector<Vertex::VertexID>  vert_ids;
 };
 
+
+class VertexNormal : public ObjElement
+{
+public:
+    typedef Vertex::VertexID VertexNormalID;
+    typedef std::unordered_map<VertexNormalID,VertexNormal*> VertNormalMap;
+    typedef VertNormalMap::iterator VertNormalMapIter;
+    typedef VertNormalMap::const_iterator VertNormalMapCIter;
+    
+    ~VertexNormal();
+    static VertexNormal* construct_from_line(std::string line);
+    virtual void pretty_print() const;
+    
+    VertexNormalID get_vnid() const
+    {
+        return vnid;
+    }
+    
+private:
+    VertexNormal(const GLfloat& x, const GLfloat& y, const GLfloat& z);
+    Point4 vn;
+    VertexNormalID vnid;
+};
 
 #endif

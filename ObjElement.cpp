@@ -33,11 +33,8 @@ static void remove_comment(std::string& line)
 
 
 Vertex::Vertex(GLfloat _x, GLfloat _y, GLfloat _z, GLfloat _w)
+ : vert_pt(_x,_y,_z,_w)
 {
-    vert_pt.x = _x;
-    vert_pt.y = _y;
-    vert_pt.z = _z;
-    vert_pt.w = _w;
     static VertexID _vid = 0;
     _vid += 1;
     vid = _vid;
@@ -189,12 +186,16 @@ Face* Face::construct_from_line(std::string line)
         // constructor.
         std::vector<Vertex::VertexID> vert_ids;
 
-        while (! tokenizer.eof())
+        if (to_tokenize.find("/") == std::string::npos)
         {
-            Vertex::VertexID vid;
-            tokenizer >> vid;
-            vert_ids.push_back(vid);
+            while (! tokenizer.eof())
+            {
+                Vertex::VertexID vid;
+                tokenizer >> vid;
+                vert_ids.push_back(vid);
+            }
         }
+        // FIXME: handle comlex face with /-s.  
 
         return new Face(vert_ids);
     }
@@ -245,3 +246,47 @@ void Face::centroid_and_maxes(
     centroid.y /= ((GLfloat) vert_ids.size());
     centroid.z /= ((GLfloat) vert_ids.size());
 }
+
+/************* Vertex Normal **********/
+
+VertexNormal::~VertexNormal()
+{}
+
+VertexNormal::VertexNormal(const GLfloat &x, const GLfloat& y, const GLfloat&z)
+ : vn(x,y,z)
+{
+    static VertexNormalID _vnid = 0;
+    _vnid += 1;
+}
+
+void VertexNormal::pretty_print() const
+{
+    printf("Vertex normals: x=%f y=%f z=%f",vn.x,vn.y,vn.z);
+}
+
+
+VertexNormal* VertexNormal::construct_from_line(std::string line)
+{
+    remove_comment(line);
+    trim(line);
+
+    // using 2 here because, we must check at least second index to ensure that
+    // not a texture coordinate or normal
+    if (line.size() < 1)
+        return NULL;
+
+    if ((line[0] == 'v') && (line[1] == 'n'))
+    {
+        // start from 1 to remove command characters, 'vn'.
+        std::string to_tokenize = line.substr(2);
+        std::istringstream tokenizer(to_tokenize);
+        float x,y,z;
+        tokenizer >> x;
+        tokenizer >> y;
+        tokenizer >> z;        
+
+        return new VertexNormal((GLfloat)x, (GLfloat)y, (GLfloat)z);
+    }
+    return NULL;
+}
+

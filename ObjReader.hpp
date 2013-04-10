@@ -12,8 +12,10 @@ public:
     static void read_object_file(
         std::string filename,
         std::unordered_map<Vertex::VertexID,Vertex*> & vertex_map,
-        std::vector<Face*> & face_list);
+        std::vector<Face*> & face_list,
+        VertexNormal::VertNormalMap& vertex_normal_map);
 
+    
 private:
 
     /**

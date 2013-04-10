@@ -12,7 +12,9 @@ int main(int argc, char** argv)
     
     std::vector<Face*> face_list;
     std::unordered_map<Vertex::VertexID,Vertex*> vertex_map;
-    ObjReader::read_object_file(filename,vertex_map,face_list);
+    VertexNormal::VertNormalMap vertex_normal_map;
+    
+    ObjReader::read_object_file(filename,vertex_map,face_list,vertex_normal_map);
     
     for (std::vector<Face*>::const_iterator iter = face_list.begin();
          iter != face_list.end(); ++iter)
@@ -27,6 +29,14 @@ int main(int argc, char** argv)
         iter->second->pretty_print();
         std::cout<<"\n";
     }
-            
+
+    for (VertexNormal::VertNormalMapCIter citer = vertex_normal_map.begin();
+         citer != vertex_normal_map.end(); ++ citer)
+    {
+        citer->second->pretty_print();
+        std::cout<<"\n";            
+    }
+
+    
     return 0;
 }

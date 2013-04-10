@@ -8,6 +8,7 @@
 #include <GL/glut.h>
 #include <GL/gl.h>
 #include "DrawingGlobal.hpp"
+#include "Util.hpp"
 #define WINDOW_WIDTH 640
 #define WINDOW_HEIGHT 480
 
@@ -21,7 +22,8 @@ void setup_gl(
 
 void draw_faces(
     std::vector<Face*>&face_list,
-    std::unordered_map<Vertex::VertexID,Vertex*>& vertex_map);
+    std::unordered_map<Vertex::VertexID,Vertex*>& vertex_map,
+    VertexNormal::VertNormalMap& vertex_normal_map);
 
 void render_frame(void);
 GLfloat gl_max(GLfloat a, GLfloat b);
@@ -34,7 +36,9 @@ int main(int argc, char** argv)
     
     std::vector<Face*> face_list;
     std::unordered_map<Vertex::VertexID,Vertex*> vertex_map;
-    ObjReader::read_object_file(filename,vertex_map,face_list);
+    VertexNormal::VertNormalMap vertex_normal_map;
+    ObjReader::read_object_file(
+        filename,vertex_map,face_list,vertex_normal_map);
 
     drawing_global = new DrawingGlobal(vertex_map,face_list);
     
@@ -83,7 +87,8 @@ void render_frame(void)
 
 void draw_faces(
     std::vector<Face*>&face_list,
-    std::unordered_map<Vertex::VertexID,Vertex*>& vertex_map)
+    std::unordered_map<Vertex::VertexID,Vertex*>& vertex_map,
+    VertexNormal::VertNormalMap& vertex_normal_map)
 {
     for (std::vector<Face*>::iterator iter = face_list.begin();
          iter != face_list.end(); ++iter)

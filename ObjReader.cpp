@@ -8,7 +8,8 @@
 void ObjReader::read_object_file(
     std::string filename,
     std::unordered_map<Vertex::VertexID,Vertex*> & vertex_map,
-    std::vector<Face*> & face_list)    
+    std::vector<Face*> & face_list,
+    VertexNormal::VertNormalMap& vertex_normal_map)
 {
     std::vector<ObjElement*> all_elements = read_all_file_elements(filename);
     for (std::vector<ObjElement*>::iterator iter = all_elements.begin();
@@ -25,7 +26,14 @@ void ObjReader::read_object_file(
         if (face != NULL)
         {
             face_list.push_back(face);
-            // putting continue in in case add more rules later.
+            continue;
+        }
+
+        VertexNormal* vertex_normal = dynamic_cast<VertexNormal*> (*iter);
+        if (vertex_normal != NULL)
+        {
+            vertex_normal_map[vertex_normal->get_vnid()] = vertex_normal;
+            // putting continue in in case add more rules later.            
             continue;
         }
     }
@@ -48,6 +56,7 @@ std::vector<ObjElement*> ObjReader::read_all_file_elements(std::string filename)
             all_elements.push_back(line_element);
     }
     file.close();
+    std::cout<<"\nRead full file\n";
     return all_elements;
 }
 
@@ -64,6 +73,10 @@ ObjElement* ObjReader::read_element_from_string(std::string line_to_read)
         return element;
 
     element = Face::construct_from_line(line_to_read);
+    if (element != NULL)
+        return element;
+
+    element = VertexNormal::construct_from_line(line_to_read);
     if (element != NULL)
         return element;
     
