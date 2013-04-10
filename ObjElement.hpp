@@ -1,12 +1,13 @@
 #ifndef __OBJ_ELEMENT_HPP__
 #define __OBJ_ELEMENT_HPP__
 
-#define OBJ_FILE_COMMENT_START '#'
-
+#include "Util.hpp"
 #include <string>
 #include <GL/gl.h>
 #include <vector>
 #include <unordered_map>
+
+#define OBJ_FILE_COMMENT_START '#'
 
 // Pure virtual base class
 class ObjElement
@@ -35,24 +36,24 @@ public:
     }
     GLfloat get_x() const
     {
-        return x;
+        return vert_pt.x;
     }
     GLfloat get_y() const
     {
-        return y;
+        return vert_pt.y;
     }    
     GLfloat get_z() const
     {
-        return z;
+        return vert_pt.z;
     }
     GLfloat get_w() const
     {
-        return w;
+        return vert_pt.w;
     }
     
 private:
     Vertex(GLfloat x, GLfloat y, GLfloat z, GLfloat w=1.0);
-    GLfloat x, y, z, w;
+    Point4 vert_pt;
     VertexID vid;
 
 };
@@ -78,9 +79,8 @@ public:
 
     void draw_face(const std::unordered_map<Vertex::VertexID,Vertex*>& vert_map) const;
     void centroid_and_maxes(
-        GLfloat& cx, GLfloat& cy, GLfloat& cz,
-        GLfloat& maxx,GLfloat& maxy, GLfloat& maxz,
-        GLfloat& minx,GLfloat& miny, GLfloat& minz,
+        Point4& centroid,
+        Point4& max,Point4& min,
         const std::unordered_map<Vertex::VertexID,Vertex*>& vert_map) const;
     
     

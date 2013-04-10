@@ -26,7 +26,7 @@ void draw_faces(
 void render_frame(void);
 GLfloat gl_max(GLfloat a, GLfloat b);
 void keyboard_func(unsigned char key,int x, int y);
-void idle_func();
+
 
 int main(int argc, char** argv)
 {
@@ -59,7 +59,6 @@ void setup_gl(const std::string &filename, int argc, char** argv,DrawingGlobal* 
     
     glutDisplayFunc(render_frame);
     glutKeyboardFunc(keyboard_func);
-    glutIdleFunc(idle_func);
 }
 
 GLfloat gl_max(GLfloat a, GLfloat b)
@@ -75,21 +74,10 @@ void keyboard_func(
     drawing_global->keyboard_func(key,x,y);
 }
 
-void idle_func()
-{
-    drawing_global->idle_func();
-}
-
 
 void render_frame(void)
 {
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glPushMatrix();
-    glLoadIdentity();
     drawing_global->render_frame();
-    glutSwapBuffers();
-    glPopMatrix();
-    glFlush();
 }
 
 

@@ -4,6 +4,8 @@
 #include <unordered_map>
 #include <vector>
 #include "ObjElement.hpp"
+#include "Util.hpp"
+
 
 #define PERSPECTIVE_NEAR_PLANE_ANGLE 60.f
 #define INITIAL_EYE_X 0.f
@@ -32,11 +34,7 @@ public:
 private:
     std::unordered_map<Vertex::VertexID, Vertex*>& vertex_map;
     std::vector<Face*>& face_list;
-    GLfloat eye_x,eye_y,eye_z;
-    
-    GLfloat centroid_x,centroid_y,centroid_z;
-    GLfloat max_x,max_y,max_z;
-    GLfloat min_x,min_y,min_z;
+    Point4 eye, centroid, max, min;
 
     GLfloat window_width,window_height;
 };

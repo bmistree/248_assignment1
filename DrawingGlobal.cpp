@@ -10,60 +10,59 @@ DrawingGlobal::DrawingGlobal(
         std::unordered_map<Vertex::VertexID, Vertex*>& _vertex_map,
         std::vector<Face*>& _face_list)
  : vertex_map(_vertex_map),
-   face_list(_face_list),
-   eye_x(INITIAL_EYE_X),
-   eye_y(INITIAL_EYE_Y),
-   eye_z(INITIAL_EYE_Z)
+   face_list(_face_list)
 {
+    eye.x = INITIAL_EYE_X;
+    eye.y = INITIAL_EYE_Y;
+    eye.z = INITIAL_EYE_Z;
+    
     // Calculate obj centroid and scale image
-    centroid_x = 0;
-    centroid_y = 0;
-    centroid_z = 0;
+    centroid.x = 0;
+    centroid.y = 0;
+    centroid.z = 0;
 
-    max_x = 0;
-    max_y = 0;
-    max_z = 0;
-    min_x = 0;
-    min_y = 0;
-    min_z = 0;
+    max.x = 0;
+    max.y = 0;
+    max.z = 0;
+    min.x = 0;
+    min.y = 0;
+    min.z = 0;
 
     for (std::vector<Face*>::const_iterator citer = face_list.begin();
          citer != face_list.end(); ++citer)
     {
         Face* face = *citer;
 
-        GLfloat cx,cy,cz;
-        GLfloat maxx,maxy,maxz;
-        GLfloat minx,miny,minz;
+        Point4 c,maxes,mins;
 
-        face->centroid_and_maxes(cx,cy,cz,maxx,maxy,maxz,minx,miny,minz, vertex_map);
+        face->centroid_and_maxes(c,maxes,mins, vertex_map);
 
         if (citer == face_list.begin())
         {
-            max_x = maxx;
-            max_y = maxy;
-            max_z = maxz;
-            min_x = minx;
-            min_y = miny;
-            min_z = minz;
+            max.x = maxes.x;
+            max.y = maxes.y;
+            max.z = maxes.z;
+            min.x = mins.x;
+            min.y = mins.y;
+            min.z = mins.z;
         }
 
-        if (max_x < maxx) max_x = maxx;
-        if (max_y < maxy) max_y = maxy;
-        if (max_z < maxz) max_z = maxz;
+        if (max.x < maxes.x) max.x = maxes.x;
+        if (max.y < maxes.y) max.y = maxes.y;
+        if (max.z < maxes.z) max.z = maxes.z;
         
-        if (min_x > minx) min_x = minx;
-        if (min_y > miny) min_y = miny;
-        if (min_z > minz) min_z = minz;
+        if (min.x > mins.x) min.x = mins.x;
+        if (min.y > mins.y) min.y = mins.y;
+        if (min.z > mins.z) min.z = mins.z;
 
-        centroid_x += cx;
-        centroid_y += cy;
-        centroid_z += cz;        
+        centroid.x += c.x;
+        centroid.y += c.y;
+        centroid.z += c.z;        
     }
 
-    centroid_x /= ((GLfloat) face_list.size());
-    centroid_y /= ((GLfloat) face_list.size());
-    centroid_z /= ((GLfloat) face_list.size());
+    centroid.x /= ((GLfloat) face_list.size());
+    centroid.y /= ((GLfloat) face_list.size());
+    centroid.z /= ((GLfloat) face_list.size());
 
 }
 
@@ -98,27 +97,29 @@ DrawingGlobal::~DrawingGlobal()
 void DrawingGlobal::keyboard_func(unsigned char key,int x, int y)
 {
     if (key == 'i')
-        eye_z -= INCREMENT_POS_ON_KEY;
+        eye.z -= INCREMENT_POS_ON_KEY;
     else if (key == 'k')
-        eye_z += INCREMENT_POS_ON_KEY;
+        eye.z += INCREMENT_POS_ON_KEY;
     else if (key == 'l')
-        eye_x += INCREMENT_POS_ON_KEY;
+        eye.x += INCREMENT_POS_ON_KEY;
     else if (key == 'j')
-        eye_x -= INCREMENT_POS_ON_KEY;
+        eye.x -= INCREMENT_POS_ON_KEY;
     else if (key == 'w')
-        eye_y += INCREMENT_POS_ON_KEY;
+        eye.y += INCREMENT_POS_ON_KEY;
     else if (key == 's')
-        eye_y -= INCREMENT_POS_ON_KEY;
-}
+        eye.y -= INCREMENT_POS_ON_KEY;
 
-void DrawingGlobal::idle_func()
-{
-    glutPostRedisplay();
+    glutPostRedisplay();    
 }
 
 
 void DrawingGlobal::render_frame()
 {
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glPushMatrix();
+    glLoadIdentity();
+
+    
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     gluPerspective(
@@ -133,8 +134,8 @@ void DrawingGlobal::render_frame()
     glLoadIdentity();
     gluLookAt(
         // eye positioning
-        eye_x,eye_y,eye_z,
-        eye_x ,eye_y, eye_z - 1.f,
+        eye.x,eye.y,eye.z,
+        eye.x ,eye.y, eye.z - 1.f,
         // // looking at origin
         // 0.f,0.f,0.f,
         // camera is oriented so that it's top is in the y direction
@@ -142,11 +143,16 @@ void DrawingGlobal::render_frame()
     
 
     
-    glTranslatef(-centroid_x,-centroid_y,-centroid_z);
-    glColor3f(.5,.5,.5);
+    glTranslatef(-centroid.x,-centroid.y,-centroid.z);
+    glColor3f(.5f,.5f,.5f);
     for (std::vector<Face*>::const_iterator citer = face_list.begin();
          citer != face_list.end(); ++citer)
     {
         (*citer)->draw_face(vertex_map);
     }
+
+    glutSwapBuffers();
+    glPopMatrix();
+    glFlush();
+    
 }

@@ -33,11 +33,11 @@ static void remove_comment(std::string& line)
 
 
 Vertex::Vertex(GLfloat _x, GLfloat _y, GLfloat _z, GLfloat _w)
- : x(_x),
-   y(_y),
-   z(_z),
-   w(_w)
 {
+    vert_pt.x = _x;
+    vert_pt.y = _y;
+    vert_pt.z = _z;
+    vert_pt.w = _w;
     static VertexID _vid = 0;
     _vid += 1;
     vid = _vid;
@@ -50,7 +50,8 @@ Vertex::~Vertex()
 void Vertex::pretty_print() const
 {
     std::cout<<"List of texture coordinates: id="<<
-        vid<<" x="<<x<<" y="<<y<<" z="<<z<<" w="<<w;
+        vid<<" x="<<vert_pt.x<<" y="<<vert_pt.y<<
+        " z="<<vert_pt.z<<" w="<<vert_pt.w;
 }
 
 Vertex* Vertex::construct_from_line(std::string line)
@@ -201,12 +202,11 @@ Face* Face::construct_from_line(std::string line)
 }
 
 void Face::centroid_and_maxes(
-    GLfloat& cx, GLfloat& cy, GLfloat& cz,
-    GLfloat& maxx,GLfloat& maxy, GLfloat& maxz,
-    GLfloat& minx,GLfloat& miny, GLfloat& minz,
+    Point4& centroid,
+    Point4& max,Point4& min,
     const std::unordered_map<Vertex::VertexID,Vertex*>& vert_map) const
 {
-    cx = cy = cz = 0;
+    centroid.x = centroid.y = centroid.z = 0;
     
     for (std::vector<Vertex::VertexID>::const_iterator citer = vert_ids.begin();
          citer != vert_ids.end(); ++citer)
@@ -218,30 +218,30 @@ void Face::centroid_and_maxes(
         vx = vert->get_x();
         vy = vert->get_y();
         vz = vert->get_z();
-        cx += vx;
-        cy += vy;
-        cz += vz;
+        centroid.x += vx;
+        centroid.y += vy;
+        centroid.z += vz;
 
         if (citer == vert_ids.begin())
         {
-            maxx = vx;
-            maxy = vy;
-            maxz = vz;
-            minx = vx;
-            miny = vy;
-            minz = vz;
+            max.x = vx;
+            max.y = vy;
+            max.z = vz;
+            min.x = vx;
+            min.y = vy;
+            min.z = vz;
         }
 
-        if (maxx < vx) maxx = vx;
-        if (maxy < vy) maxy = vy;
-        if (maxz < vz) maxz = vz;
+        if (max.x < vx) max.x = vx;
+        if (max.y < vy) max.y = vy;
+        if (max.z < vz) max.z = vz;
         
-        if (minx > vx) minx = vx;
-        if (miny > vy) miny = vy;
-        if (minz > vz) minz = vz;
+        if (min.x > vx) min.x = vx;
+        if (min.y > vy) min.y = vy;
+        if (min.z > vz) min.z = vz;
     }
 
-    cx /= ((GLfloat) vert_ids.size());
-    cy /= ((GLfloat) vert_ids.size());
-    cz /= ((GLfloat) vert_ids.size());
+    centroid.x /= ((GLfloat) vert_ids.size());
+    centroid.y /= ((GLfloat) vert_ids.size());
+    centroid.z /= ((GLfloat) vert_ids.size());
 }

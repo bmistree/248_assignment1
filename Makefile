@@ -1,7 +1,7 @@
 COMPILER= g++
 FLAGS= -Wall -g -std=c++0x 
 LIBS= -lglut -lGL -lGLU
-DEPS= ObjReader.hpp ObjElement.hpp
+DEPS= ObjReader.hpp ObjElement.hpp Util.hpp
 OBJ_BASIC= ObjElement.o ObjReader.o 
 PROGRAMS= read_file_test
 
