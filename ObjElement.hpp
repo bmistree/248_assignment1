@@ -64,30 +64,15 @@ public:
     ~TextureCoordinate();
     static TextureCoordinate* construct_from_line(std::string line);
     virtual void pretty_print() const;
+    typedef Vertex::VertexID TextureCoordID;
     
 private:
     TextureCoordinate(GLfloat u, GLfloat v, GLfloat w=0.0);
     GLfloat u,v,w;
+
+    TextureCoordID tid;
 };
 
-class Face : public ObjElement
-{
-public:
-    ~Face();
-    static Face* construct_from_line(std::string line);
-    virtual void pretty_print() const;
-
-    void draw_face(const std::unordered_map<Vertex::VertexID,Vertex*>& vert_map) const;
-    void centroid_and_maxes(
-        Point4& centroid,
-        Point4& max,Point4& min,
-        const std::unordered_map<Vertex::VertexID,Vertex*>& vert_map) const;
-    
-    
-private:
-    Face(const std::vector <Vertex::VertexID>& vert_index_vec);
-    std::vector<Vertex::VertexID>  vert_ids;
-};
 
 
 class VertexNormal : public ObjElement
@@ -111,6 +96,65 @@ private:
     VertexNormal(const GLfloat& x, const GLfloat& y, const GLfloat& z);
     Point4 vn;
     VertexNormalID vnid;
+};
+
+
+
+
+
+
+class Face : public ObjElement
+{
+public:
+    ~Face();
+    static Face* construct_from_line(std::string line);
+    virtual void pretty_print() const;
+
+    void draw_face(const std::unordered_map<Vertex::VertexID,Vertex*>& vert_map) const;
+    void centroid_and_maxes(
+        Point4& centroid,
+        Point4& max,Point4& min,
+        const std::unordered_map<Vertex::VertexID,Vertex*>& vert_map) const;
+    
+    
+private:
+
+    struct VertexDescriptor
+    {
+        VertexDescriptor(
+            Vertex::VertexID* _vid, TextureCoordinate::TextureCoordID* _tid,
+            VertexNormal::VertexNormalID* _vnid)
+         : vid(_vid), tid(_tid), vnid(_vnid)
+        {}
+
+        ~VertexDescriptor()
+        {
+            if (vid != NULL)
+            {
+                delete vid;
+                vid = NULL;
+            }
+            if (tid != NULL)
+            {
+                delete tid;
+                tid = NULL;
+            }
+            if (vnid != NULL)
+            {
+                delete vnid;
+                vnid = NULL;
+            }
+        }
+        
+        
+        Vertex::VertexID* vid;
+        TextureCoordinate::TextureCoordID* tid;
+        VertexNormal::VertexNormalID* vnid;
+    };
+    
+    Face();
+    void add_vertex_descriptor(VertexDescriptor* vd);
+    std::vector<VertexDescriptor*> vert_descriptors;
 };
 
 #endif

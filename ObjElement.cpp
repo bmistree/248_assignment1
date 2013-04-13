@@ -5,6 +5,8 @@
 #include <stdio.h>
 #include <iostream>
 #include <cassert>
+#include <boost/regex.hpp>
+
 
 /**
    Returns copy of string with no whitespace at beginning or end of string.
@@ -94,7 +96,11 @@ TextureCoordinate::TextureCoordinate(GLfloat _u, GLfloat _v, GLfloat _w)
  : u(_u),
    v(_v),
    w(_w)
-{}
+{
+    static TextureCoordID _tid = 0;
+    tid = ++_tid;
+}
+
 TextureCoordinate::~TextureCoordinate()
 {}
 void TextureCoordinate::pretty_print() const
@@ -131,25 +137,35 @@ TextureCoordinate* TextureCoordinate::construct_from_line(std::string line)
 }
 
 /************* FACE *************/
-Face::Face(const std::vector<Vertex::VertexID>& vert_index_vec)
- :vert_ids(vert_index_vec)
+Face::Face()
 {}
-
+void Face::add_vertex_descriptor(VertexDescriptor* vd)
+{
+    vert_descriptors.push_back(vd);
+}
 Face::~Face()
-{}
+{
+    for (std::vector<VertexDescriptor*>::iterator iter = vert_descriptors.begin();
+         iter != vert_descriptors.end(); ++iter)
+    {
+        delete *iter;
+    }
+    vert_descriptors.clear();
+}
 
 void Face::draw_face(const std::unordered_map<Vertex::VertexID,Vertex*>& vert_map) const
 {
     glColor3f(.5f,.5f,.5f);
     glBegin(GL_LINE_LOOP);
-    for (std::vector<Vertex::VertexID>::const_iterator citer = vert_ids.begin();
-         citer != vert_ids.end(); ++citer)
+
+    for (std::vector<VertexDescriptor*>::const_iterator citer = vert_descriptors.begin();
+         citer != vert_descriptors.end(); ++citer)
     {
-        Vertex::VertexID vid = *citer;
-        std::unordered_map<Vertex::VertexID,Vertex*>::const_iterator vert_iter = vert_map.find(vid);
+        Vertex::VertexID* vid = (*citer)->vid;
+        std::unordered_map<Vertex::VertexID,Vertex*>::const_iterator vert_iter = vert_map.find(*vid);
         if (vert_iter == vert_map.end())
             assert(false);
-        
+
         Vertex* vert = vert_iter->second;
         // actually draw
         glVertex4f(vert->get_x(),vert->get_y(),vert->get_z(), vert->get_w());
@@ -160,10 +176,11 @@ void Face::draw_face(const std::unordered_map<Vertex::VertexID,Vertex*>& vert_ma
 void Face::pretty_print() const
 {
     printf("List of face vertices:");
-    for (std::vector<Vertex::VertexID>::const_iterator citer = vert_ids.begin();
-         citer != vert_ids.end(); ++citer)
+    for (std::vector<VertexDescriptor*>::const_iterator citer = vert_descriptors.begin();
+         citer != vert_descriptors.end(); ++citer)
     {
-        std::cout<<"   vert: "<<*citer;
+        Vertex::VertexID* vid = (*citer)->vid;
+        std::cout<<"   vert: "<<*vid;
     }
 }
 
@@ -179,25 +196,53 @@ Face* Face::construct_from_line(std::string line)
     
     if (line[0] == 'f')
     {
+        Face* f = new Face();
+        
         // start from 1 to remove command character, 'f'.
         std::string to_tokenize = line.substr(1);
         std::istringstream tokenizer(to_tokenize);
-        // FIXME: may want to pass as pointer instead to avoid copy in
-        // constructor.
-        std::vector<Vertex::VertexID> vert_ids;
-
         if (to_tokenize.find("/") == std::string::npos)
         {
             while (! tokenizer.eof())
             {
-                Vertex::VertexID vid;
-                tokenizer >> vid;
-                vert_ids.push_back(vid);
+                Vertex::VertexID* vid = new Vertex::VertexID;
+                tokenizer >> (*vid);
+                f->add_vertex_descriptor(new VertexDescriptor(vid,NULL,NULL));
             }
         }
-        // FIXME: handle comlex face with /-s.  
+        else
+        {
+            // Face has / format for each grouping:
+            // a/b/c  d/e/f g/h/i ...
+            boost::regex regex("(\\d+)/(\\d+)/(\\d+)");
+            std::string::const_iterator to_search_from, end;
+            to_search_from = to_tokenize.begin();
+            end = to_tokenize.end();
+            boost::match_results<std::string::const_iterator> matches;
 
-        return new Face(vert_ids);
+            while(boost::regex_search(to_search_from,end,matches,regex))
+            {
+                Vertex::VertexID* vid = new Vertex::VertexID;
+                *vid = atoi(
+                    std::string(matches[1].first,matches[1].second).c_str());
+
+                TextureCoordinate::TextureCoordID* tcid = new TextureCoordinate::TextureCoordID;
+                *tcid = atoi(
+                    std::string(matches[2].first,matches[2].second).c_str());
+
+                VertexNormal::VertexNormalID* vnid = new VertexNormal::VertexNormalID;
+                *vnid = atoi(
+                    std::string(matches[3].first,matches[3].second).c_str());
+
+                VertexDescriptor* vd = new VertexDescriptor(vid,tcid,vnid);
+                f->add_vertex_descriptor(vd);
+
+                to_search_from = matches[3].second;
+                
+            }
+        }
+
+        return f;
     }
     return NULL;
 }
@@ -209,12 +254,13 @@ void Face::centroid_and_maxes(
 {
     centroid.x = centroid.y = centroid.z = 0;
     
-    for (std::vector<Vertex::VertexID>::const_iterator citer = vert_ids.begin();
-         citer != vert_ids.end(); ++citer)
+    for (std::vector<VertexDescriptor*>::const_iterator citer = vert_descriptors.begin();
+         citer != vert_descriptors.end(); ++citer)
     {
         // note: the following line of code is only acceptable because we *know*
         // that the vertex must be in the map.
-        Vertex* vert = vert_map.find(*citer)->second;
+        Vertex::VertexID vid = *((*citer)->vid);
+        Vertex* vert = vert_map.find(vid)->second;
         GLfloat vx,vy,vz;
         vx = vert->get_x();
         vy = vert->get_y();
@@ -223,7 +269,7 @@ void Face::centroid_and_maxes(
         centroid.y += vy;
         centroid.z += vz;
 
-        if (citer == vert_ids.begin())
+        if (citer == vert_descriptors.begin())
         {
             max.x = vx;
             max.y = vy;
@@ -242,9 +288,9 @@ void Face::centroid_and_maxes(
         if (min.z > vz) min.z = vz;
     }
 
-    centroid.x /= ((GLfloat) vert_ids.size());
-    centroid.y /= ((GLfloat) vert_ids.size());
-    centroid.z /= ((GLfloat) vert_ids.size());
+    centroid.x /= ((GLfloat) vert_descriptors.size());
+    centroid.y /= ((GLfloat) vert_descriptors.size());
+    centroid.z /= ((GLfloat) vert_descriptors.size());
 }
 
 /************* Vertex Normal **********/
