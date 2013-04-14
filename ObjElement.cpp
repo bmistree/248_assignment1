@@ -6,6 +6,8 @@
 #include <iostream>
 #include <cassert>
 #include <boost/regex.hpp>
+#include <OpenVolumeMesh/Mesh/PolyhedralMesh.hh>
+#include <OpenVolumeMesh/Geometry/VectorT.hh>
 
 
 /**
@@ -34,12 +36,13 @@ static void remove_comment(std::string& line)
 }
 
 
-Vertex::Vertex(GLfloat _x, GLfloat _y, GLfloat _z, GLfloat _w)
- : vert_pt(_x,_y,_z,_w)
+Vertex::Vertex(
+    OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh,float x, float y, float z, float w)
 {
-    static VertexID _vid = 0;
-    _vid += 1;
-    vid = _vid;
+    static VertexId _vid = 0;
+    vid = ++_vid;
+    
+    ovm_id = obj_mesh->add_vertex(OpenVolumeMesh::Geometry::Vec4f(x,y,z,w));
 }
 
 
@@ -48,13 +51,12 @@ Vertex::~Vertex()
 
 void Vertex::pretty_print() const
 {
-    std::cout<<"List of texture coordinates: id="<<
-        vid<<" x="<<vert_pt.x<<" y="<<vert_pt.y<<
-        " z="<<vert_pt.z<<" w="<<vert_pt.w;
 }
 
-Vertex* Vertex::construct_from_line(std::string line)
+Vertex* Vertex::construct_from_line(
+    OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh, std::string line)
 {
+    
     remove_comment(line);
     trim(line);
 
@@ -82,9 +84,7 @@ Vertex* Vertex::construct_from_line(std::string line)
         if (! tokenizer.eof())
             tokenizer >> w;
 
-        
-        return new Vertex(
-            (GLfloat)x, (GLfloat)y, (GLfloat)z, (GLfloat)w);
+        return new Vertex(obj_mesh,x, y, z, w);
     }
     
     return NULL;
@@ -108,7 +108,9 @@ void TextureCoordinate::pretty_print() const
     printf("List of vertices: u=%f v=%f w=%f",u,v,w);
 }
 
-TextureCoordinate* TextureCoordinate::construct_from_line(std::string line)
+TextureCoordinate* TextureCoordinate::construct_from_line(
+    OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh,
+    std::string line)
 {
     remove_comment(line);
     trim(line);
@@ -137,67 +139,23 @@ TextureCoordinate* TextureCoordinate::construct_from_line(std::string line)
 }
 
 /************* FACE *************/
-Face::Face()
-{}
-void Face::add_vertex_descriptor(VertexDescriptor* vd)
+OpenVolumeMesh::FaceHandle Face::construct_from_line(
+    OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh,
+    const Vertex::VertexMap& vmap, std::string line)
 {
-    vert_descriptors.push_back(vd);
-}
-Face::~Face()
-{
-    for (std::vector<VertexDescriptor*>::iterator iter = vert_descriptors.begin();
-         iter != vert_descriptors.end(); ++iter)
-    {
-        delete *iter;
-    }
-    vert_descriptors.clear();
-}
-
-void Face::draw_face(const std::unordered_map<Vertex::VertexID,Vertex*>& vert_map) const
-{
-    glColor3f(.5f,.5f,.5f);
-    glBegin(GL_LINE_LOOP);
-
-    for (std::vector<VertexDescriptor*>::const_iterator citer = vert_descriptors.begin();
-         citer != vert_descriptors.end(); ++citer)
-    {
-        Vertex::VertexID* vid = (*citer)->vid;
-        std::unordered_map<Vertex::VertexID,Vertex*>::const_iterator vert_iter = vert_map.find(*vid);
-        if (vert_iter == vert_map.end())
-            assert(false);
-
-        Vertex* vert = vert_iter->second;
-        // actually draw
-        glVertex4f(vert->get_x(),vert->get_y(),vert->get_z(), vert->get_w());
-    }
-    glEnd();
-}
-
-void Face::pretty_print() const
-{
-    printf("List of face vertices:");
-    for (std::vector<VertexDescriptor*>::const_iterator citer = vert_descriptors.begin();
-         citer != vert_descriptors.end(); ++citer)
-    {
-        Vertex::VertexID* vid = (*citer)->vid;
-        std::cout<<"   vert: "<<*vid;
-    }
-}
-
-Face* Face::construct_from_line(std::string line)
-{
+    OpenVolumeMesh::FaceHandle did_not_find;
+    
     remove_comment(line);
     trim(line);
 
     // using 2 here because, we must check at least second index to ensure that
     // not a texture coordinate or normal
     if (line.size() < 1)
-        return NULL;
-    
+        return did_not_find;
+
+    std::vector<OpenVolumeMesh::VertexHandle> vertices;
     if (line[0] == 'f')
     {
-        Face* f = new Face();
-        
         // start from 1 to remove command character, 'f'.
         std::string to_tokenize = line.substr(1);
         std::istringstream tokenizer(to_tokenize);
@@ -205,9 +163,11 @@ Face* Face::construct_from_line(std::string line)
         {
             while (! tokenizer.eof())
             {
-                Vertex::VertexID* vid = new Vertex::VertexID;
-                tokenizer >> (*vid);
-                f->add_vertex_descriptor(new VertexDescriptor(vid,NULL,NULL));
+                Vertex::VertexId vid;
+                tokenizer >> vid;
+
+                Vertex::VertexMapCIter citer = vmap.find(vid);
+                vertices.push_back(citer->second->get_ovm_id());
             }
         }
         else
@@ -222,75 +182,28 @@ Face* Face::construct_from_line(std::string line)
 
             while(boost::regex_search(to_search_from,end,matches,regex))
             {
-                Vertex::VertexID* vid = new Vertex::VertexID;
-                *vid = atoi(
+                Vertex::VertexId vid;
+                vid = atoi(
                     std::string(matches[1].first,matches[1].second).c_str());
 
-                TextureCoordinate::TextureCoordID* tcid = new TextureCoordinate::TextureCoordID;
-                *tcid = atoi(
+                TextureCoordinate::TextureCoordID tcid;
+                tcid = atoi(
                     std::string(matches[2].first,matches[2].second).c_str());
 
-                VertexNormal::VertexNormalID* vnid = new VertexNormal::VertexNormalID;
-                *vnid = atoi(
+                VertexNormal::VertexNormalID vnid;
+                vnid = atoi(
                     std::string(matches[3].first,matches[3].second).c_str());
 
-                VertexDescriptor* vd = new VertexDescriptor(vid,tcid,vnid);
-                f->add_vertex_descriptor(vd);
-
-                to_search_from = matches[3].second;
+                Vertex::VertexMapCIter citer = vmap.find(vid);
+                vertices.push_back(citer->second->get_ovm_id());
                 
+                to_search_from = matches[3].second;
             }
         }
-
-        return f;
+        OpenVolumeMesh::FaceHandle ovm_id = obj_mesh->add_face(vertices);
+        return ovm_id;
     }
-    return NULL;
-}
-
-void Face::centroid_and_maxes(
-    Point4& centroid,
-    Point4& max,Point4& min,
-    const std::unordered_map<Vertex::VertexID,Vertex*>& vert_map) const
-{
-    centroid.x = centroid.y = centroid.z = 0;
-    
-    for (std::vector<VertexDescriptor*>::const_iterator citer = vert_descriptors.begin();
-         citer != vert_descriptors.end(); ++citer)
-    {
-        // note: the following line of code is only acceptable because we *know*
-        // that the vertex must be in the map.
-        Vertex::VertexID vid = *((*citer)->vid);
-        Vertex* vert = vert_map.find(vid)->second;
-        GLfloat vx,vy,vz;
-        vx = vert->get_x();
-        vy = vert->get_y();
-        vz = vert->get_z();
-        centroid.x += vx;
-        centroid.y += vy;
-        centroid.z += vz;
-
-        if (citer == vert_descriptors.begin())
-        {
-            max.x = vx;
-            max.y = vy;
-            max.z = vz;
-            min.x = vx;
-            min.y = vy;
-            min.z = vz;
-        }
-
-        if (max.x < vx) max.x = vx;
-        if (max.y < vy) max.y = vy;
-        if (max.z < vz) max.z = vz;
-        
-        if (min.x > vx) min.x = vx;
-        if (min.y > vy) min.y = vy;
-        if (min.z > vz) min.z = vz;
-    }
-
-    centroid.x /= ((GLfloat) vert_descriptors.size());
-    centroid.y /= ((GLfloat) vert_descriptors.size());
-    centroid.z /= ((GLfloat) vert_descriptors.size());
+    return did_not_find;
 }
 
 /************* Vertex Normal **********/
@@ -311,7 +224,9 @@ void VertexNormal::pretty_print() const
 }
 
 
-VertexNormal* VertexNormal::construct_from_line(std::string line)
+VertexNormal* VertexNormal::construct_from_line(
+    OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh,
+    std::string line)
 {
     remove_comment(line);
     trim(line);

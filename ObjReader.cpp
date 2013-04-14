@@ -2,83 +2,53 @@
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <OpenVolumeMesh/Mesh/PolyhedralMesh.hh>
 
 
-
-void ObjReader::read_object_file(
-    std::string filename,
-    std::unordered_map<Vertex::VertexID,Vertex*> & vertex_map,
-    std::vector<Face*> & face_list,
-    VertexNormal::VertNormalMap& vertex_normal_map)
+OpenVolumeMesh::GeometricPolyhedralMeshV4f* ObjReader::read_object_file(
+    const std::string& filename,Vertex::VertexMap& vmap)
 {
-    std::vector<ObjElement*> all_elements = read_all_file_elements(filename);
-    for (std::vector<ObjElement*>::iterator iter = all_elements.begin();
-         iter != all_elements.end(); ++iter)
-    {
-        Vertex* vert = dynamic_cast<Vertex*> (*iter);
-        if (vert != NULL)
-        {
-            vertex_map[vert->get_vid()] = vert;
-            continue;
-        }
-
-        Face* face = dynamic_cast<Face*> (*iter);
-        if (face != NULL)
-        {
-            face_list.push_back(face);
-            continue;
-        }
-
-        VertexNormal* vertex_normal = dynamic_cast<VertexNormal*> (*iter);
-        if (vertex_normal != NULL)
-        {
-            vertex_normal_map[vertex_normal->get_vnid()] = vertex_normal;
-            // putting continue in in case add more rules later.            
-            continue;
-        }
-    }
+    OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh =
+        new OpenVolumeMesh::GeometricPolyhedralMeshV4f;
+    
+    read_all_file_elements(filename,vmap,obj_mesh);
+    return obj_mesh;
 }
 
 
-std::vector<ObjElement*> ObjReader::read_all_file_elements(std::string filename)
+void ObjReader::read_all_file_elements(
+    const std::string& filename,Vertex::VertexMap& vmap,
+    OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh)
 {
-    std::vector<ObjElement*> all_elements;
-    
     std::ifstream file;
     file.open (filename.c_str());
     std::string single_line;
     while (getline(file,single_line))
-    {
-        ObjElement* line_element =
-            ObjReader::read_element_from_string(single_line);
+        read_element_from_string(single_line,vmap,obj_mesh);
 
-        if (line_element != NULL)
-            all_elements.push_back(line_element);
-    }
     file.close();
-    std::cout<<"\nRead full file\n";
-    return all_elements;
 }
 
 
-ObjElement* ObjReader::read_element_from_string(std::string line_to_read)
+void ObjReader::read_element_from_string(
+    const std::string& line_to_read,
+    Vertex::VertexMap& vmap,
+    OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh)
 {
-    ObjElement* element = NULL;
-    element = Vertex::construct_from_line(line_to_read);
-    if (element != NULL)
-        return element;
+    Vertex* vert = Vertex::construct_from_line(obj_mesh,line_to_read);
+    if (vert != NULL)
+    {
+        vmap[vert->get_vid()] = vert;
+        return;
+    }
 
-    element = TextureCoordinate::construct_from_line(line_to_read);
-    if (element != NULL)
-        return element;
+    // if (VertexCoordinate::construct_from_line(line_to_read))
+    //     return;
 
-    element = Face::construct_from_line(line_to_read);
-    if (element != NULL)
-        return element;
-
-    element = VertexNormal::construct_from_line(line_to_read);
-    if (element != NULL)
-        return element;
+    OpenVolumeMesh::FaceHandle fh = Face::construct_from_line(obj_mesh,vmap,line_to_read);
+    if (fh.is_valid())
+        return;
     
-    return element;
+    // if (VertexNormal::construct_from_line(line_to_read))
+    //     return;
 }

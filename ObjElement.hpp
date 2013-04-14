@@ -6,6 +6,8 @@
 #include <GL/gl.h>
 #include <vector>
 #include <unordered_map>
+#include <OpenVolumeMesh/Mesh/PolyhedralMesh.hh>
+
 
 #define OBJ_FILE_COMMENT_START '#'
 
@@ -20,52 +22,48 @@ public:
 class Vertex: public ObjElement
 {
 public:
-    typedef uint64_t VertexID;
-    
     ~Vertex();
     /**
        @returns{ObjElement*} --- NULL if line did not match rule for this
        ObjElement.  Otherwise, a pointer to a newly-constructed object element.
      */
-    static Vertex* construct_from_line(std::string line);
+    typedef uint64_t VertexId;
+    typedef std::unordered_map<VertexId,Vertex*> VertexMap;
+    typedef VertexMap::iterator VertexMapIter;
+    typedef VertexMap::const_iterator VertexMapCIter;
+
+    
+    static Vertex* construct_from_line(
+        OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh,std::string line);
     virtual void pretty_print() const;
 
-    VertexID get_vid() const
+    VertexId get_vid() const
     {
         return vid;
     }
-    GLfloat get_x() const
+
+    OpenVolumeMesh::VertexHandle get_ovm_id() const
     {
-        return vert_pt.x;
-    }
-    GLfloat get_y() const
-    {
-        return vert_pt.y;
-    }    
-    GLfloat get_z() const
-    {
-        return vert_pt.z;
-    }
-    GLfloat get_w() const
-    {
-        return vert_pt.w;
+        return ovm_id;
     }
     
 private:
-    Vertex(GLfloat x, GLfloat y, GLfloat z, GLfloat w=1.0f);
-    Point4 vert_pt;
-    VertexID vid;
-
+    Vertex(OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh,
+        float x, float y, float z, float w=1.0f);
+    OpenVolumeMesh::VertexHandle ovm_id;
+    VertexId vid;
 };
 
 class TextureCoordinate : public ObjElement
 {
 public:
     ~TextureCoordinate();
-    static TextureCoordinate* construct_from_line(std::string line);
+    static TextureCoordinate* construct_from_line(
+        OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh,
+        std::string line);
     virtual void pretty_print() const;
-    typedef Vertex::VertexID TextureCoordID;
-    
+    typedef uint64_t TextureCoordID;
+
 private:
     TextureCoordinate(GLfloat u, GLfloat v, GLfloat w=0.0);
     GLfloat u,v,w;
@@ -78,13 +76,15 @@ private:
 class VertexNormal : public ObjElement
 {
 public:
-    typedef Vertex::VertexID VertexNormalID;
+    typedef uint64_t VertexNormalID;
     typedef std::unordered_map<VertexNormalID,VertexNormal*> VertNormalMap;
     typedef VertNormalMap::iterator VertNormalMapIter;
     typedef VertNormalMap::const_iterator VertNormalMapCIter;
     
     ~VertexNormal();
-    static VertexNormal* construct_from_line(std::string line);
+    static VertexNormal* construct_from_line(
+        OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh,
+        std::string line);
     virtual void pretty_print() const;
     
     VertexNormalID get_vnid() const
@@ -99,62 +99,12 @@ private:
 };
 
 
-
-
-
-
 class Face : public ObjElement
 {
 public:
-    ~Face();
-    static Face* construct_from_line(std::string line);
-    virtual void pretty_print() const;
-
-    void draw_face(const std::unordered_map<Vertex::VertexID,Vertex*>& vert_map) const;
-    void centroid_and_maxes(
-        Point4& centroid,
-        Point4& max,Point4& min,
-        const std::unordered_map<Vertex::VertexID,Vertex*>& vert_map) const;
-    
-    
-private:
-
-    struct VertexDescriptor
-    {
-        VertexDescriptor(
-            Vertex::VertexID* _vid, TextureCoordinate::TextureCoordID* _tid,
-            VertexNormal::VertexNormalID* _vnid)
-         : vid(_vid), tid(_tid), vnid(_vnid)
-        {}
-
-        ~VertexDescriptor()
-        {
-            if (vid != NULL)
-            {
-                delete vid;
-                vid = NULL;
-            }
-            if (tid != NULL)
-            {
-                delete tid;
-                tid = NULL;
-            }
-            if (vnid != NULL)
-            {
-                delete vnid;
-                vnid = NULL;
-            }
-        }
-        
-        
-        Vertex::VertexID* vid;
-        TextureCoordinate::TextureCoordID* tid;
-        VertexNormal::VertexNormalID* vnid;
-    };
-    
-    Face();
-    void add_vertex_descriptor(VertexDescriptor* vd);
-    std::vector<VertexDescriptor*> vert_descriptors;
+    static OpenVolumeMesh::FaceHandle construct_from_line(
+        OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh,
+        const Vertex::VertexMap& vmap, std::string line);
 };
 
 #endif

@@ -19,29 +19,18 @@ void setup_gl(
     const std::string& filename, int argc,char** argv,
     DrawingGlobal* dg);
 
-
-void draw_faces(
-    std::vector<Face*>&face_list,
-    std::unordered_map<Vertex::VertexID,Vertex*>& vertex_map,
-    VertexNormal::VertNormalMap& vertex_normal_map);
-
 void render_frame(void);
-GLfloat gl_max(GLfloat a, GLfloat b);
 void keyboard_func(unsigned char key,int x, int y);
 
 
 int main(int argc, char** argv)
 {
     std::string filename(argv[1]);
+    Vertex::VertexMap* vmap = new Vertex::VertexMap;
+    OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh =
+        ObjReader::read_object_file(filename,*vmap);
     
-    std::vector<Face*> face_list;
-    std::unordered_map<Vertex::VertexID,Vertex*> vertex_map;
-    VertexNormal::VertNormalMap vertex_normal_map;
-    ObjReader::read_object_file(
-        filename,vertex_map,face_list,vertex_normal_map);
-
-    drawing_global = new DrawingGlobal(vertex_map,face_list);
-    
+    drawing_global = new DrawingGlobal(obj_mesh,vmap);
     setup_gl(filename,argc,argv,drawing_global);
 
     glutMainLoop();
@@ -65,15 +54,7 @@ void setup_gl(const std::string &filename, int argc, char** argv,DrawingGlobal* 
     glutKeyboardFunc(keyboard_func);
 }
 
-GLfloat gl_max(GLfloat a, GLfloat b)
-{
-    if (a < b)
-        return b;
-    return a;
-}
-
-void keyboard_func(
-    unsigned char key,int x, int y)
+void keyboard_func(unsigned char key,int x, int y)
 {
     drawing_global->keyboard_func(key,x,y);
 }
@@ -84,15 +65,3 @@ void render_frame(void)
     drawing_global->render_frame();
 }
 
-
-void draw_faces(
-    std::vector<Face*>&face_list,
-    std::unordered_map<Vertex::VertexID,Vertex*>& vertex_map,
-    VertexNormal::VertNormalMap& vertex_normal_map)
-{
-    for (std::vector<Face*>::iterator iter = face_list.begin();
-         iter != face_list.end(); ++iter)
-    {
-        (*iter)->draw_face(vertex_map);
-    }
-}

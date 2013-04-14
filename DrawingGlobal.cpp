@@ -5,65 +5,15 @@
 #include <GL/gl.h>
 #include <GL/glut.h>
 #include <iostream>
+#include <OpenVolumeMesh/Mesh/PolyhedralMesh.hh>
 
 DrawingGlobal::DrawingGlobal(
-        std::unordered_map<Vertex::VertexID, Vertex*>& _vertex_map,
-        std::vector<Face*>& _face_list)
- : vertex_map(_vertex_map),
-   face_list(_face_list)
+    OpenVolumeMesh::GeometricPolyhedralMeshV4f* _obj_mesh,Vertex::VertexMap* _vmap)
+ : obj_mesh(_obj_mesh), vmap(_vmap)
 {
     eye.x = INITIAL_EYE_X;
     eye.y = INITIAL_EYE_Y;
     eye.z = INITIAL_EYE_Z;
-    
-    // Calculate obj centroid and scale image
-    centroid.x = 0;
-    centroid.y = 0;
-    centroid.z = 0;
-
-    max.x = 0;
-    max.y = 0;
-    max.z = 0;
-    min.x = 0;
-    min.y = 0;
-    min.z = 0;
-
-    for (std::vector<Face*>::const_iterator citer = face_list.begin();
-         citer != face_list.end(); ++citer)
-    {
-        Face* face = *citer;
-
-        Point4 c,maxes,mins;
-
-        face->centroid_and_maxes(c,maxes,mins, vertex_map);
-
-        if (citer == face_list.begin())
-        {
-            max.x = maxes.x;
-            max.y = maxes.y;
-            max.z = maxes.z;
-            min.x = mins.x;
-            min.y = mins.y;
-            min.z = mins.z;
-        }
-
-        if (max.x < maxes.x) max.x = maxes.x;
-        if (max.y < maxes.y) max.y = maxes.y;
-        if (max.z < maxes.z) max.z = maxes.z;
-        
-        if (min.x > mins.x) min.x = mins.x;
-        if (min.y > mins.y) min.y = mins.y;
-        if (min.z > mins.z) min.z = mins.z;
-
-        centroid.x += c.x;
-        centroid.y += c.y;
-        centroid.z += c.z;        
-    }
-
-    centroid.x /= ((GLfloat) face_list.size());
-    centroid.y /= ((GLfloat) face_list.size());
-    centroid.z /= ((GLfloat) face_list.size());
-
 }
 
 void DrawingGlobal::set_window_width_height(
@@ -74,25 +24,7 @@ void DrawingGlobal::set_window_width_height(
 }
 
 DrawingGlobal::~DrawingGlobal()
-{
-    // free memory associated with vertex map
-    for (std::unordered_map<Vertex::VertexID,Vertex*>::iterator iter = vertex_map.begin();
-         iter != vertex_map.end(); ++iter)
-    {
-        delete iter->second;
-    }
-
-    vertex_map.clear();
-
-    // free memory associated with face list
-    for (std::vector<Face*>::iterator iter = face_list.begin();
-         iter != face_list.end(); ++iter)
-    {
-        delete (*iter);
-    }
-
-    face_list.clear();
-}
+{}
 
 void DrawingGlobal::keyboard_func(unsigned char key,int x, int y)
 {
@@ -141,16 +73,34 @@ void DrawingGlobal::render_frame()
         // camera is oriented so that it's top is in the y direction
         0.f,1.f,0.f);
     
-
-    
-    glTranslatef(-centroid.x,-centroid.y,-centroid.z);
     glColor3f(.5f,.5f,.5f);
-    for (std::vector<Face*>::const_iterator citer = face_list.begin();
-         citer != face_list.end(); ++citer)
+    for (OpenVolumeMesh::FaceIter iter = obj_mesh->faces_begin();
+         iter != obj_mesh->faces_end(); ++iter)
     {
-        (*citer)->draw_face(vertex_map);
-    }
+        glBegin(GL_LINE_LOOP);
+        
+        const OpenVolumeMesh::OpenVolumeMeshFace& face = obj_mesh->face(*iter);
+        const std::vector<OpenVolumeMesh::HalfEdgeHandle>& half_edge_handles = face.halfedges();
 
+        for (std::vector<OpenVolumeMesh::HalfEdgeHandle>::const_iterator he_iter = half_edge_handles.begin();
+             he_iter != half_edge_handles.end(); ++he_iter)
+        {
+            const OpenVolumeMesh::OpenVolumeMeshEdge& edge = obj_mesh->halfedge(*he_iter);
+            const OpenVolumeMesh::VertexHandle& from_vertex = edge.from_vertex();
+            //const OpenVolumeMesh::VertexHandle& to_vertex = edge.to_vertex();
+
+            const OpenVolumeMesh::Geometry::Vec4f& vertex_vec = obj_mesh->vertex(from_vertex);
+
+            glVertex4f(
+                (GLfloat)vertex_vec[0],
+                (GLfloat)vertex_vec[1],
+                (GLfloat)vertex_vec[2],
+                (GLfloat)vertex_vec[3]);
+        }
+        
+        glEnd();
+    }
+    
     glutSwapBuffers();
     glPopMatrix();
     glFlush();

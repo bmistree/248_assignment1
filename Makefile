@@ -1,10 +1,11 @@
 COMPILER= g++
 FLAGS= -Wall -g -std=c++0x 
-LIBS= -lglut -lGL -lGLU
+LIBS= -lglut -lGL -lGLU -I/usr/local/include/
 DEPS= ObjReader.hpp ObjElement.hpp Util.hpp
 OBJ_BASIC= ObjElement.o ObjReader.o 
 PROGRAMS= read_file_test
-BOOST_REGEX_SO=/usr/lib/libboost_regex.a
+# BOOST_REGEX_SO=/usr/lib/libboost_regex.so /usr/local/lib/OpenVolumeMesh/libOpenVolumeMesh.so
+BOOST_REGEX_SO=/usr/lib/libboost_regex.so /usr/local/lib/OpenVolumeMesh/libOpenVolumeMesh.a
 
 # for each .cpp file (or any change to ObjReader.hpp), create a .o
 # file -c: generate the object file.  -o: put the object file in the

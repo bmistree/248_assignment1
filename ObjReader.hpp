@@ -3,36 +3,31 @@
 
 #include "ObjElement.hpp"
 #include <string>
-#include <vector>
-#include <unordered_map>
+#include <OpenVolumeMesh/Mesh/PolyhedralMesh.hh>
+
 
 class ObjReader
 {
 public:
-    static void read_object_file(
-        std::string filename,
-        std::unordered_map<Vertex::VertexID,Vertex*> & vertex_map,
-        std::vector<Face*> & face_list,
-        VertexNormal::VertNormalMap& vertex_normal_map);
-
+    static OpenVolumeMesh::GeometricPolyhedralMeshV4f* read_object_file(
+        const std::string& filename, Vertex::VertexMap& vmap);
     
 private:
 
     /**
        @param{std::string} line --- Line from which to make ObjElement
-       
-       @returns {ObjElement*} --- NULL if the line contains no rule (eg, blank,
-       malformed, or comment).
      */
-    static ObjElement* read_element_from_string(std::string line);
+    static void read_element_from_string(
+        const std::string& line, Vertex::VertexMap& vmap,
+        OpenVolumeMesh::GeometricPolyhedralMeshV4f*);
 
     /**
        @param {std::string} filename --- Reads the .obj file stored by filename
        and returns all elements it contains as a vector.
      */
-    static std::vector<ObjElement*> read_all_file_elements(std::string filename);
-
-    
+    static void read_all_file_elements(
+        const std::string& filename,Vertex::VertexMap& vmap,
+        OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh);
 };
 
 #endif

@@ -5,7 +5,7 @@
 #include <vector>
 #include "ObjElement.hpp"
 #include "Util.hpp"
-
+#include <OpenVolumeMesh/Mesh/PolyhedralMesh.hh>
 
 #define PERSPECTIVE_NEAR_PLANE_ANGLE 60.f
 #define INITIAL_EYE_X 0.f
@@ -21,8 +21,8 @@ class DrawingGlobal
 {
 public:
     DrawingGlobal(
-        std::unordered_map<Vertex::VertexID, Vertex*>& vertex_map,
-        std::vector<Face*>& face_list);
+        OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh,
+        Vertex::VertexMap* vmap);
     ~DrawingGlobal();
 
     void set_window_width_height(GLfloat window_width,GLfloat window_height);
@@ -32,10 +32,9 @@ public:
     void idle_func();
     
 private:
-    std::unordered_map<Vertex::VertexID, Vertex*>& vertex_map;
-    std::vector<Face*>& face_list;
-    Point4 eye, centroid, max, min;
-
+    OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh;
+    Vertex::VertexMap* vmap;
+    Point4 eye;
     GLfloat window_width,window_height;
 };
 
