@@ -99,6 +99,17 @@ private:
 
         EvenMap& subdivided_is_even_map,
         VecMap& subdivided_original_position_map);
+
+    static void adjust_subdivided_vertex_positions(
+        OpenVolumeMesh::GeometricPolyhedralMeshV4f* subdivided_mesh,
+        const EvenMap& subdivided_is_even_map,
+        const VecMap& subdivided_original_position_map);
+
+    static void handle_even_vertex(
+        OpenVolumeMesh::GeometricPolyhedralMeshV4f* subdivided_mesh,
+        const OpenVolumeMesh::VertexHandle& vhandle,
+        const VecMap& subdivided_original_position_map);
+    
     
 };
 #endif
