@@ -9,6 +9,9 @@
 #include <GL/gl.h>
 #include "DrawingGlobal.hpp"
 #include "Util.hpp"
+
+#include "Subdivider.hpp"
+
 #define WINDOW_WIDTH 640
 #define WINDOW_HEIGHT 480
 
@@ -29,8 +32,12 @@ int main(int argc, char** argv)
     Vertex::VertexMap* vmap = new Vertex::VertexMap;
     OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh =
         ObjReader::read_object_file(filename,*vmap);
-    
-    drawing_global = new DrawingGlobal(obj_mesh,vmap);
+
+    OpenVolumeMesh::GeometricPolyhedralMeshV4f* sub =
+        Subdivider::subdivide(obj_mesh);
+
+    drawing_global = new DrawingGlobal(sub,vmap);
+    // drawing_global = new DrawingGlobal(obj_mesh,vmap);
     setup_gl(filename,argc,argv,drawing_global);
 
     glutMainLoop();

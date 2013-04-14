@@ -125,7 +125,34 @@ void Subdivider::create_new_faces(
     EvenMap& subdivided_is_even_map,
     VecMap& subdivided_original_position_map)
 {
-    // FIXME: fill in.
+    std::vector<OpenVolumeMesh::VertexHandle> vertices;
+
+    // Add a new face in bottom left of triangle
+    vertices.push_back(bottom_left);
+    vertices.push_back(midpoint_top_bottom_left);
+    vertices.push_back(midpoint_bottom_left_bottom_right);
+    subdivided_mesh->add_face(vertices);
+    vertices.clear();
+    
+    // Add a new face in top of triangle
+    vertices.push_back(midpoint_top_bottom_left);
+    vertices.push_back(top);
+    vertices.push_back(midpoint_top_bottom_right);
+    subdivided_mesh->add_face(vertices);
+    vertices.clear();
+
+    // Add a new face in bottom right of triangle
+    vertices.push_back(midpoint_top_bottom_right);
+    vertices.push_back(bottom_right);
+    vertices.push_back(midpoint_bottom_left_bottom_right);
+    subdivided_mesh->add_face(vertices);
+    vertices.clear();
+
+    // Add a new face in the middle of the triangle
+    vertices.push_back(midpoint_top_bottom_left);
+    vertices.push_back(midpoint_top_bottom_right);
+    vertices.push_back(midpoint_bottom_left_bottom_right);
+    subdivided_mesh->add_face(vertices);
 }
 
 
@@ -148,9 +175,11 @@ OpenVolumeMesh::VertexHandle Subdivider::find_or_insert_even_vertex(
     if (finder == translation_map.end())
     {
         // could not find vertex.  insert it.
-        OpenVolumeMesh::Geometry::Vec4f vertex_vec =
+        const OpenVolumeMesh::Geometry::Vec4f& vertex_vec =
             to_subdivide->vertex(to_subdivide_v_handle);
-        OpenVolumeMesh::VertexHandle subdivided_vertex_handle = subdivided_mesh->add_vertex(vertex_vec);
+        
+        OpenVolumeMesh::VertexHandle subdivided_vertex_handle =
+            subdivided_mesh->add_vertex(vertex_vec);
         
         // notate that the vertex is even
         subdivided_is_even_map[subdivided_vertex_handle] = true;
@@ -207,12 +236,13 @@ OpenVolumeMesh::VertexHandle Subdivider::find_or_insert_midpoint(
             (a_vertex_vec[3] + b_vertex_vec[3])/2.0);
 
         OpenVolumeMesh::VertexHandle midpoint_handle =
-            to_subdivide->add_vertex(midpoint);
+            subdivided_mesh->add_vertex(midpoint);
         
         // notate that the vertex is odd
         subdivided_is_even_map[midpoint_handle] = false;
         subdivided_original_position_map[midpoint_handle] = midpoint;
-            
+
+        midpoint_map[to_search_for] = midpoint_handle;
         return midpoint_handle;
     }
 
