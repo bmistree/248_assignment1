@@ -104,3 +104,4 @@ void DrawingGlobal::render_frame()
     glFlush();
     
 }
+

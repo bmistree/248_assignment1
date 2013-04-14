@@ -27,6 +27,9 @@ public:
 
     void set_window_width_height(GLfloat window_width,GLfloat window_height);
 
+    static OpenVolumeMesh::GeometricPolyhedralMeshV4f* subdivide(
+        OpenVolumeMesh::GeometricPolyhedralMeshV4f* to_subdivide);
+    
     void render_frame();
     void keyboard_func(unsigned char key,int x, int y);
     void idle_func();
@@ -36,6 +39,10 @@ private:
     Vertex::VertexMap* vmap;
     Point4 eye;
     GLfloat window_width,window_height;
+
+
+    
+    
 };
 
 #endif
