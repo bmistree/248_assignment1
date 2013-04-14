@@ -35,17 +35,16 @@ void ObjReader::read_element_from_string(
     Vertex::VertexMap& vmap,
     OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh)
 {
-    Vertex* vert = Vertex::construct_from_line(obj_mesh,line_to_read);
-    if (vert != NULL)
-    {
-        vmap[vert->get_vid()] = vert;
+    OpenVolumeMesh::VertexHandle vh = Vertex::construct_from_line(
+        obj_mesh,vmap,line_to_read);
+    if (vh.is_valid())
         return;
-    }
 
     // if (VertexCoordinate::construct_from_line(line_to_read))
     //     return;
 
-    OpenVolumeMesh::FaceHandle fh = Face::construct_from_line(obj_mesh,vmap,line_to_read);
+    OpenVolumeMesh::FaceHandle fh = Face::construct_from_line(
+        obj_mesh,vmap,line_to_read);
     if (fh.is_valid())
         return;
     

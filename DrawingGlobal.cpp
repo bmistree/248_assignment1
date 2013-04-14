@@ -87,8 +87,6 @@ void DrawingGlobal::render_frame()
         {
             const OpenVolumeMesh::OpenVolumeMeshEdge& edge = obj_mesh->halfedge(*he_iter);
             const OpenVolumeMesh::VertexHandle& from_vertex = edge.from_vertex();
-            //const OpenVolumeMesh::VertexHandle& to_vertex = edge.to_vertex();
-
             const OpenVolumeMesh::Geometry::Vec4f& vertex_vec = obj_mesh->vertex(from_vertex);
 
             glVertex4f(

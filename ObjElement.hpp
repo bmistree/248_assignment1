@@ -22,36 +22,18 @@ public:
 class Vertex: public ObjElement
 {
 public:
-    ~Vertex();
     /**
        @returns{ObjElement*} --- NULL if line did not match rule for this
        ObjElement.  Otherwise, a pointer to a newly-constructed object element.
      */
     typedef uint64_t VertexId;
-    typedef std::unordered_map<VertexId,Vertex*> VertexMap;
+    typedef std::unordered_map<VertexId,OpenVolumeMesh::VertexHandle> VertexMap;
     typedef VertexMap::iterator VertexMapIter;
     typedef VertexMap::const_iterator VertexMapCIter;
 
-    
-    static Vertex* construct_from_line(
-        OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh,std::string line);
-    virtual void pretty_print() const;
-
-    VertexId get_vid() const
-    {
-        return vid;
-    }
-
-    OpenVolumeMesh::VertexHandle get_ovm_id() const
-    {
-        return ovm_id;
-    }
-    
-private:
-    Vertex(OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh,
-        float x, float y, float z, float w=1.0f);
-    OpenVolumeMesh::VertexHandle ovm_id;
-    VertexId vid;
+    static OpenVolumeMesh::VertexHandle construct_from_line(
+        OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh,VertexMap& vmap,
+        std::string line);
 };
 
 class TextureCoordinate : public ObjElement
@@ -62,13 +44,13 @@ public:
         OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh,
         std::string line);
     virtual void pretty_print() const;
-    typedef uint64_t TextureCoordID;
+    typedef uint64_t TextureCoordId;
 
 private:
     TextureCoordinate(GLfloat u, GLfloat v, GLfloat w=0.0);
     GLfloat u,v,w;
 
-    TextureCoordID tid;
+    TextureCoordId tid;
 };
 
 
@@ -76,8 +58,8 @@ private:
 class VertexNormal : public ObjElement
 {
 public:
-    typedef uint64_t VertexNormalID;
-    typedef std::unordered_map<VertexNormalID,VertexNormal*> VertNormalMap;
+    typedef uint64_t VertexNormalId;
+    typedef std::unordered_map<VertexNormalId,VertexNormal*> VertNormalMap;
     typedef VertNormalMap::iterator VertNormalMapIter;
     typedef VertNormalMap::const_iterator VertNormalMapCIter;
     
@@ -87,7 +69,7 @@ public:
         std::string line);
     virtual void pretty_print() const;
     
-    VertexNormalID get_vnid() const
+    VertexNormalId get_vnid() const
     {
         return vnid;
     }
@@ -95,7 +77,7 @@ public:
 private:
     VertexNormal(const GLfloat& x, const GLfloat& y, const GLfloat& z);
     Point4 vn;
-    VertexNormalID vnid;
+    VertexNormalId vnid;
 };
 
 

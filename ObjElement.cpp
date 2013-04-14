@@ -36,26 +36,12 @@ static void remove_comment(std::string& line)
 }
 
 
-Vertex::Vertex(
-    OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh,float x, float y, float z, float w)
+OpenVolumeMesh::VertexHandle Vertex::construct_from_line(
+    OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh, Vertex::VertexMap& vmap,
+    std::string line)
 {
-    static VertexId _vid = 0;
-    vid = ++_vid;
-    
-    ovm_id = obj_mesh->add_vertex(OpenVolumeMesh::Geometry::Vec4f(x,y,z,w));
-}
-
-
-Vertex::~Vertex()
-{}
-
-void Vertex::pretty_print() const
-{
-}
-
-Vertex* Vertex::construct_from_line(
-    OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh, std::string line)
-{
+    static VertexId vid = 0;
+    OpenVolumeMesh::VertexHandle vertex_handle;
     
     remove_comment(line);
     trim(line);
@@ -63,7 +49,7 @@ Vertex* Vertex::construct_from_line(
     // using 2 here because, we must check at least second index to ensure that
     // not a texture coordinate or normal
     if (line.size() < 2)
-        return NULL;
+        return vertex_handle;
     
     if ((line[0] == 'v') &&
 
@@ -84,10 +70,10 @@ Vertex* Vertex::construct_from_line(
         if (! tokenizer.eof())
             tokenizer >> w;
 
-        return new Vertex(obj_mesh,x, y, z, w);
+        vertex_handle = obj_mesh->add_vertex(OpenVolumeMesh::Geometry::Vec4f(x,y,z,w));
+        vmap[++vid] = vertex_handle;
     }
-    
-    return NULL;
+    return vertex_handle;
 }
 
 
@@ -97,7 +83,7 @@ TextureCoordinate::TextureCoordinate(GLfloat _u, GLfloat _v, GLfloat _w)
    v(_v),
    w(_w)
 {
-    static TextureCoordID _tid = 0;
+    static TextureCoordId _tid = 0;
     tid = ++_tid;
 }
 
@@ -165,9 +151,8 @@ OpenVolumeMesh::FaceHandle Face::construct_from_line(
             {
                 Vertex::VertexId vid;
                 tokenizer >> vid;
-
                 Vertex::VertexMapCIter citer = vmap.find(vid);
-                vertices.push_back(citer->second->get_ovm_id());
+                vertices.push_back(citer->second);
             }
         }
         else
@@ -186,16 +171,16 @@ OpenVolumeMesh::FaceHandle Face::construct_from_line(
                 vid = atoi(
                     std::string(matches[1].first,matches[1].second).c_str());
 
-                TextureCoordinate::TextureCoordID tcid;
+                TextureCoordinate::TextureCoordId tcid;
                 tcid = atoi(
                     std::string(matches[2].first,matches[2].second).c_str());
 
-                VertexNormal::VertexNormalID vnid;
+                VertexNormal::VertexNormalId vnid;
                 vnid = atoi(
                     std::string(matches[3].first,matches[3].second).c_str());
 
                 Vertex::VertexMapCIter citer = vmap.find(vid);
-                vertices.push_back(citer->second->get_ovm_id());
+                vertices.push_back(citer->second);
                 
                 to_search_from = matches[3].second;
             }
@@ -214,7 +199,7 @@ VertexNormal::~VertexNormal()
 VertexNormal::VertexNormal(const GLfloat &x, const GLfloat& y, const GLfloat&z)
  : vn(x,y,z)
 {
-    static VertexNormalID _vnid = 0;
+    static VertexNormalId _vnid = 0;
     _vnid += 1;
 }
 
