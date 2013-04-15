@@ -10,19 +10,19 @@
 #define ODD_DISTANT_NEIGHBOR_FACTOR (1./8.)
 
 
-class VertexHandleHasher{
-public:
-    size_t operator() (const OpenVolumeMesh::VertexHandle& vh) const
-    {
-        return hasher(vh);
-    }
+// class VertexHandleHasher{
+// public:
+//     size_t operator() (const OpenVolumeMesh::VertexHandle& vh) const
+//     {
+//         return hasher(vh);
+//     }
 
-    static size_t hasher (const OpenVolumeMesh::VertexHandle& vh)
-    {
-        return vh.idx();
-    }
+//     static size_t hasher (const OpenVolumeMesh::VertexHandle& vh)
+//     {
+//         return vh.idx();
+//     }
     
-};
+// };
 
 class MidpointHasher
 {

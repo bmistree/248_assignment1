@@ -8,8 +8,9 @@
 #include <OpenVolumeMesh/Mesh/PolyhedralMesh.hh>
 
 DrawingGlobal::DrawingGlobal(
-    OpenVolumeMesh::GeometricPolyhedralMeshV4f* _obj_mesh,Vertex::VertexMap* _vmap)
- : obj_mesh(_obj_mesh), vmap(_vmap)
+    OpenVolumeMesh::GeometricPolyhedralMeshV4f* _obj_mesh,
+    VertexNormal::VertNormalMap* _vnmap, Vertex::VertexMap* _vmap)
+ : obj_mesh(_obj_mesh), vnmap(_vnmap),vmap(_vmap)
 {
     eye.x = INITIAL_EYE_X;
     eye.y = INITIAL_EYE_Y;

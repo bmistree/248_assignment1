@@ -10,7 +10,8 @@ class ObjReader
 {
 public:
     static OpenVolumeMesh::GeometricPolyhedralMeshV4f* read_object_file(
-        const std::string& filename, Vertex::VertexMap& vmap);
+        const std::string& filename, VertexNormal::VertNormalMap& vnmap,
+        Vertex::VertexMap& vmap);
     
 private:
 
@@ -18,7 +19,8 @@ private:
        @param{std::string} line --- Line from which to make ObjElement
      */
     static void read_element_from_string(
-        const std::string& line, Vertex::VertexMap& vmap,
+        const std::string& line, VertexNormal::VertNormalMap& vnmap,
+        Vertex::VertexMap& vmap,
         OpenVolumeMesh::GeometricPolyhedralMeshV4f*);
 
     /**
@@ -26,7 +28,9 @@ private:
        and returns all elements it contains as a vector.
      */
     static void read_all_file_elements(
-        const std::string& filename,Vertex::VertexMap& vmap,
+        const std::string& filename,
+        VertexNormal::VertNormalMap& vnmap,
+        Vertex::VertexMap& vmap,
         OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh);
 };
 

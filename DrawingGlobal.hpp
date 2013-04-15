@@ -22,6 +22,7 @@ class DrawingGlobal
 public:
     DrawingGlobal(
         OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh,
+        VertexNormal::VertNormalMap* vnmap,
         Vertex::VertexMap* vmap);
     ~DrawingGlobal();
 
@@ -36,6 +37,7 @@ public:
     
 private:
     OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh;
+    VertexNormal::VertNormalMap* vnmap;
     Vertex::VertexMap* vmap;
     Point4 eye;
     GLfloat window_width,window_height;

@@ -8,7 +8,7 @@
 #include <boost/regex.hpp>
 #include <OpenVolumeMesh/Mesh/PolyhedralMesh.hh>
 #include <OpenVolumeMesh/Geometry/VectorT.hh>
-
+#include <math.h>
 
 /**
    Returns copy of string with no whitespace at beginning or end of string.
@@ -203,23 +203,91 @@ VertexNormal::VertexNormal(const GLfloat &x, const GLfloat& y, const GLfloat&z)
     _vnid += 1;
 }
 
-void VertexNormal::pretty_print() const
+void VertexNormal::calculate_normals(
+    VertNormalMap& vnmap,
+    OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh)
 {
-    printf("Vertex normals: x=%f y=%f z=%f",vn.x,vn.y,vn.z);
+    // for each vertex, run through all the faces its a part of.  Calculate
+    
+    for (OpenVolumeMesh::VertexIter viter = obj_mesh->vertices_begin();
+         viter != obj_mesh->vertices_end(); ++viter)
+    {
+        OpenVolumeMesh::VertexHandle vhandle = *viter;
+
+        // get all edges associated with vertex handle and put neighbors into
+        // neighbor_handles
+        std::vector<OpenVolumeMesh::VertexHandle> neighbor_handles;
+        for(OpenVolumeMesh::VertexOHalfEdgeIter vohiter = obj_mesh->voh_iter(vhandle);
+            vohiter.valid(); ++vohiter)
+        {
+            OpenVolumeMesh::HalfEdgeHandle heh = *vohiter;
+            const OpenVolumeMesh::OpenVolumeMeshEdge& edge = obj_mesh->halfedge(heh);
+            const OpenVolumeMesh::VertexHandle& from_vertex = edge.from_vertex();
+            const OpenVolumeMesh::VertexHandle& to_vertex = edge.to_vertex();
+
+            OpenVolumeMesh::VertexHandle neighbor_vhandle = from_vertex;
+            if (from_vertex == vhandle)
+                neighbor_vhandle = to_vertex;
+
+            neighbor_handles.push_back(neighbor_vhandle);
+        }
+
+
+        OpenVolumeMesh::Geometry::Vec3f average_normal (0,0,0);
+        
+        OpenVolumeMesh::VertexHandle current_handle;
+        OpenVolumeMesh::VertexHandle next_handle;
+        for (uint64_t i = 0; i < neighbor_handles.size() - 1; ++i)
+        {
+            current_handle = neighbor_handles[i];
+            next_handle = neighbor_handles[i+1];
+
+            average_normal += calc_normal(vhandle,current_handle,next_handle,obj_mesh);
+        }
+
+        current_handle = neighbor_handles[neighbor_handles.size() -1];
+        next_handle = neighbor_handles[0];
+        average_normal += calc_normal(vhandle,current_handle,next_handle,obj_mesh);
+
+        float num_normals = neighbor_handles.size() -1;
+        average_normal *= (1./num_normals);
+        // lkjs;
+    }
+}
+
+OpenVolumeMesh::Geometry::Vec3f VertexNormal::calc_normal(
+    OpenVolumeMesh::VertexHandle vhandle0, OpenVolumeMesh::VertexHandle vhandle1,
+    OpenVolumeMesh::VertexHandle vhandle2,
+    OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh)
+{
+    OpenVolumeMesh::Geometry::Vec4f _vec0 = obj_mesh->vertex(vhandle0);
+    OpenVolumeMesh::Geometry::Vec4f _vec1 = obj_mesh->vertex(vhandle1);
+    OpenVolumeMesh::Geometry::Vec4f _vec2 = obj_mesh->vertex(vhandle2);
+
+    OpenVolumeMesh::Geometry::Vec3f vec0(_vec0[0],_vec0[1],_vec0[2]);
+    OpenVolumeMesh::Geometry::Vec3f vec1(_vec1[0],_vec1[1],_vec1[2]);
+    OpenVolumeMesh::Geometry::Vec3f vec2(_vec2[0],_vec2[1],_vec2[2]);
+
+    // Stack overflow showed me how to calculate normals
+    // http://stackoverflow.com/questions/1966587/given-3-pts-how-do-i-calculate-the-normal-vector
+    OpenVolumeMesh::Geometry::Vec3f dir = (vec0 - vec1) % (vec2 - vec1);
+
+    float len = sqrt(dir[0]*dir[0] + dir[1]*dir[1] + dir[2]*dir[2]);
+    float normalization = 1./len;
+
+    return dir*normalization;
 }
 
 
-VertexNormal* VertexNormal::construct_from_line(
-    OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh,
-    std::string line)
+bool VertexNormal::construct_from_line(VertNormalMap& vnmap,std::string line)
 {
     remove_comment(line);
     trim(line);
 
     // using 2 here because, we must check at least second index to ensure that
     // not a texture coordinate or normal
-    if (line.size() < 1)
-        return NULL;
+    if (line.size() < 2)
+        return false;
 
     if ((line[0] == 'v') && (line[1] == 'n'))
     {
@@ -231,8 +299,10 @@ VertexNormal* VertexNormal::construct_from_line(
         tokenizer >> y;
         tokenizer >> z;        
 
-        return new VertexNormal((GLfloat)x, (GLfloat)y, (GLfloat)z);
+        VertexNormal* vn = new VertexNormal((GLfloat)x, (GLfloat)y, (GLfloat)z);
+        vnmap[vn->get_vnid()] = vn;
+        return true;
     }
-    return NULL;
+    return false;
 }
 

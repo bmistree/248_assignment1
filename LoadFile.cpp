@@ -30,20 +30,32 @@ int main(int argc, char** argv)
 {
     std::string filename(argv[1]);
     Vertex::VertexMap* vmap = new Vertex::VertexMap;
+    VertexNormal::VertNormalMap* vnmap = new VertexNormal::VertNormalMap;
+    
     OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh =
-        ObjReader::read_object_file(filename,*vmap);
+        ObjReader::read_object_file(filename,*vnmap,*vmap);
 
-    OpenVolumeMesh::GeometricPolyhedralMeshV4f* sub =
-        Subdivider::subdivide(obj_mesh);
+    // OpenVolumeMesh::GeometricPolyhedralMeshV4f* sub =
+    //     Subdivider::subdivide(obj_mesh);
 
-    drawing_global = new DrawingGlobal(sub,vmap);
-    // drawing_global = new DrawingGlobal(obj_mesh,vmap);
+    // OpenVolumeMesh::GeometricPolyhedralMeshV4f* subsub =
+    //     Subdivider::subdivide(sub);
+
+    // OpenVolumeMesh::GeometricPolyhedralMeshV4f* subsubsub =
+    //     Subdivider::subdivide(subsub);
+
+    if (vnmap->size() == 0)
+        VertexNormal::calculate_normals(*vnmap,obj_mesh);
+    
+    drawing_global = new DrawingGlobal(obj_mesh,vnmap,vmap);
     setup_gl(filename,argc,argv,drawing_global);
 
     glutMainLoop();
     delete drawing_global;
     return 0;
 }
+
+
 
 void setup_gl(const std::string &filename, int argc, char** argv,DrawingGlobal* dg)
 {

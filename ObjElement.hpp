@@ -62,13 +62,20 @@ public:
     typedef std::unordered_map<VertexNormalId,VertexNormal*> VertNormalMap;
     typedef VertNormalMap::iterator VertNormalMapIter;
     typedef VertNormalMap::const_iterator VertNormalMapCIter;
+
+    typedef std::unordered_map<
+        OpenVolumeMesh::VertexHandle,VertexNormal*,
+        VertexHandleHasher> OpenVertNormalMap;
+
+    virtual void pretty_print() const{}
     
     ~VertexNormal();
-    static VertexNormal* construct_from_line(
-        OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh,
-        std::string line);
-    virtual void pretty_print() const;
-    
+    static bool construct_from_line(
+        VertNormalMap& vnmap,std::string line);
+
+    static void calculate_normals(VertNormalMap& vnmap,
+        OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh);
+        
     VertexNormalId get_vnid() const
     {
         return vnid;
@@ -76,6 +83,12 @@ public:
     
 private:
     VertexNormal(const GLfloat& x, const GLfloat& y, const GLfloat& z);
+
+    static OpenVolumeMesh::Geometry::Vec3f calc_normal(
+        OpenVolumeMesh::VertexHandle vhandle0, OpenVolumeMesh::VertexHandle vhandle1,
+        OpenVolumeMesh::VertexHandle vhandle2,
+        OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh);
+    
     Point4 vn;
     VertexNormalId vnid;
 };

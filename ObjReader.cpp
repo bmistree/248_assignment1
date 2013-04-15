@@ -6,25 +6,28 @@
 
 
 OpenVolumeMesh::GeometricPolyhedralMeshV4f* ObjReader::read_object_file(
-    const std::string& filename,Vertex::VertexMap& vmap)
+    const std::string& filename,VertexNormal::VertNormalMap& vnmap,
+    Vertex::VertexMap& vmap)
 {
     OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh =
         new OpenVolumeMesh::GeometricPolyhedralMeshV4f;
     
-    read_all_file_elements(filename,vmap,obj_mesh);
+    read_all_file_elements(filename,vnmap,vmap,obj_mesh);
     return obj_mesh;
 }
 
 
 void ObjReader::read_all_file_elements(
-    const std::string& filename,Vertex::VertexMap& vmap,
+    const std::string& filename,
+    VertexNormal::VertNormalMap& vnmap,
+    Vertex::VertexMap& vmap,
     OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh)
 {
     std::ifstream file;
     file.open (filename.c_str());
     std::string single_line;
     while (getline(file,single_line))
-        read_element_from_string(single_line,vmap,obj_mesh);
+        read_element_from_string(single_line,vnmap,vmap,obj_mesh);
 
     file.close();
 }
@@ -32,6 +35,7 @@ void ObjReader::read_all_file_elements(
 
 void ObjReader::read_element_from_string(
     const std::string& line_to_read,
+    VertexNormal::VertNormalMap& vnmap,
     Vertex::VertexMap& vmap,
     OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh)
 {
@@ -48,6 +52,7 @@ void ObjReader::read_element_from_string(
     if (fh.is_valid())
         return;
     
-    // if (VertexNormal::construct_from_line(line_to_read))
-    //     return;
+    if (VertexNormal::construct_from_line(vnmap,line_to_read))
+        return;
+    
 }
