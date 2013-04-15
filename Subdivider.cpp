@@ -45,26 +45,219 @@ void Subdivider::adjust_subdivided_vertex_positions(
     {
         OpenVolumeMesh::VertexHandle vhandle = *viter;
 
-        if (subdivided_is_even_map.find(vhandle)->second)
+        bool is_even = subdivided_is_even_map.find(vhandle)->second;
+        
+        if (is_even)
         {
             // vertex is even
             handle_even_vertex(subdivided_mesh,vhandle,subdivided_original_position_map);
-
-            
         }
         else
         {
             // vertex is odd
+            handle_odd_vertex(
+                subdivided_mesh,vhandle,subdivided_is_even_map,subdivided_original_position_map);
         }
     }
 }
+
+void Subdivider::handle_odd_vertex(
+    OpenVolumeMesh::GeometricPolyhedralMeshV4f* subdivided_mesh,
+    const OpenVolumeMesh::VertexHandle& vhandle,
+    const EvenMap& subdivided_is_even_map,
+    const VecMap& subdivided_original_position_map)
+{
+    // each odd vertex should only have two immediate neighbors.  get each.
+    OpenVolumeMesh::VertexHandle neighbor_0_vhandle,neighbor_1_vhandle;
+    
+    uint64_t num_neighbors = 0;
+    uint64_t real_num_neighbors = 0;
+    for(OpenVolumeMesh::VertexOHalfEdgeIter vohiter = subdivided_mesh->voh_iter(vhandle);
+        vohiter.valid(); ++vohiter)
+    {
+        ++real_num_neighbors;
+        OpenVolumeMesh::HalfEdgeHandle heh = *vohiter;
+        const OpenVolumeMesh::OpenVolumeMeshEdge& edge = subdivided_mesh->halfedge(heh);
+        const OpenVolumeMesh::VertexHandle& from_vertex = edge.from_vertex();
+        const OpenVolumeMesh::VertexHandle& to_vertex = edge.to_vertex();
+
+        OpenVolumeMesh::VertexHandle neighbor_vhandle = from_vertex;
+        if (from_vertex == vhandle)
+            neighbor_vhandle = to_vertex;
+
+        // ignore odd vertices
+        bool is_even = subdivided_is_even_map.find(neighbor_vhandle)->second;
+        if (! is_even)
+            continue;
+
+        // should only have two even neighbors
+        if (num_neighbors == 0)
+            neighbor_0_vhandle = neighbor_vhandle;
+        else
+            neighbor_1_vhandle = neighbor_vhandle;
+
+        ++ num_neighbors;
+    }
+
+    if (num_neighbors != 2)
+        assert(false);
+    
+    OpenVolumeMesh::Geometry::Vec4f immediate_neighbor_0_vec = 
+        subdivided_original_position_map.find(neighbor_0_vhandle)->second;
+    OpenVolumeMesh::Geometry::Vec4f immediate_neighbor_1_vec = 
+        subdivided_original_position_map.find(neighbor_1_vhandle)->second;
+
+
+    OpenVolumeMesh::Geometry::Vec4f immediate_neighbor_vec (
+        ODD_IMMEDIATE_NEIGHBOR_FACTOR * (
+            immediate_neighbor_0_vec[0] + immediate_neighbor_1_vec[0]),
+
+        ODD_IMMEDIATE_NEIGHBOR_FACTOR * (
+            immediate_neighbor_0_vec[1] + immediate_neighbor_1_vec[1]),
+
+        ODD_IMMEDIATE_NEIGHBOR_FACTOR * (
+            immediate_neighbor_0_vec[2] + immediate_neighbor_1_vec[2]),
+
+        ODD_IMMEDIATE_NEIGHBOR_FACTOR * (
+            immediate_neighbor_0_vec[3] + immediate_neighbor_1_vec[3]));
+
+    
+    // handle distant neighbors    
+    OpenVolumeMesh::Geometry::Vec4f distant_neighbor_0_vec, distant_neighbor_1_vec;
+    distant_neighbor_vec(
+        subdivided_mesh,vhandle,neighbor_0_vhandle, neighbor_1_vhandle,
+        distant_neighbor_0_vec, distant_neighbor_1_vec,
+        subdivided_is_even_map,subdivided_original_position_map);
+    
+    
+    OpenVolumeMesh::Geometry::Vec4f distant_neighbor_vec(
+        ODD_DISTANT_NEIGHBOR_FACTOR*(
+            distant_neighbor_0_vec[0]+ distant_neighbor_1_vec[0] ),
+
+        ODD_DISTANT_NEIGHBOR_FACTOR*(
+            distant_neighbor_0_vec[1]+ distant_neighbor_1_vec[1] ),
+
+        ODD_DISTANT_NEIGHBOR_FACTOR*(
+            distant_neighbor_0_vec[2]+ distant_neighbor_1_vec[2] ),
+
+        ODD_DISTANT_NEIGHBOR_FACTOR*(
+            distant_neighbor_0_vec[3]+ distant_neighbor_1_vec[3] ));
+        
+    subdivided_mesh->set_vertex(
+        vhandle,distant_neighbor_vec + immediate_neighbor_vec);
+}
+    
+
+void Subdivider::distant_neighbor_vec(
+    OpenVolumeMesh::GeometricPolyhedralMeshV4f* subdivided_mesh,
+    const OpenVolumeMesh::VertexHandle& vhandle,
+    const OpenVolumeMesh::VertexHandle& neighbor_0_vhandle,
+    const OpenVolumeMesh::VertexHandle& neighbor_1_vhandle,
+    OpenVolumeMesh::Geometry::Vec4f& dist_0_vec,
+    OpenVolumeMesh::Geometry::Vec4f& dist_1_vec,
+    const EvenMap& subdivided_is_even_map,
+    const VecMap& subdivided_original_position_map)
+{
+    // iterate through the neighbors of one neighbor and then iterate through
+    // the neighbors of the other.  Any that are in common get returned.
+
+    VertexBoolMap n0_neighbors,n1_neighbors;
+    get_even_neighbor_vertices(
+        subdivided_mesh,neighbor_0_vhandle,subdivided_is_even_map,n0_neighbors);
+    get_even_neighbor_vertices(
+        subdivided_mesh,neighbor_1_vhandle,subdivided_is_even_map,n1_neighbors);
+
+    std::vector<OpenVolumeMesh::VertexHandle> common_handles;
+    for (VertexBoolMap::const_iterator citer_n0 = n0_neighbors.begin();
+         citer_n0 != n0_neighbors.end(); ++citer_n0)
+    {
+        OpenVolumeMesh::VertexHandle vh = citer_n0->first;
+        
+        // do not care about the current vertex position
+        if (vh == vhandle)
+            continue;
+        
+        if (n1_neighbors.find(vh) != n1_neighbors.end())
+            common_handles.push_back(vh);
+    }
+
+    if (common_handles.size() != 2)
+        assert(false);
+
+
+    dist_0_vec = subdivided_original_position_map.find(
+        common_handles[0])->second;
+    dist_1_vec = subdivided_original_position_map.find(
+        common_handles[1])->second;    
+}
+
+
+void Subdivider::get_even_neighbor_vertices(
+    OpenVolumeMesh::GeometricPolyhedralMeshV4f* subdivided_mesh,
+    const OpenVolumeMesh::VertexHandle& vhandle,
+    const EvenMap& subdivided_is_even_map,
+    VertexBoolMap& vbm)
+{
+    // Essentially, not actually looking for neighbors, looking for what
+    // neighbors would have been before added midpoints (ie, odd vertices).
+    // So, if we encounter a midpoint, look for all of its even neighbors
+    // and use those.  Note: it will only have two even neighbors: vhandle
+    // and vhandle's original even neighbor that midpoint now lies between.
+    
+    for(OpenVolumeMesh::VertexOHalfEdgeIter vohiter = subdivided_mesh->voh_iter(vhandle);
+        vohiter.valid(); ++vohiter)
+    {
+        OpenVolumeMesh::HalfEdgeHandle heh = *vohiter;
+        const OpenVolumeMesh::OpenVolumeMeshEdge& edge = subdivided_mesh->halfedge(heh);
+        const OpenVolumeMesh::VertexHandle& from_vertex = edge.from_vertex();
+        const OpenVolumeMesh::VertexHandle& to_vertex = edge.to_vertex();
+        
+        OpenVolumeMesh::VertexHandle neighbor_vhandle = from_vertex;
+        if (from_vertex == vhandle)
+            neighbor_vhandle = to_vertex;
+        
+        // FIXME: very ugly the way I'm doing this.  Better to recurse.
+        if (! subdivided_is_even_map.find(neighbor_vhandle)->second)
+        {            
+            // means that the neighbor is odd: get all of the neighbor's
+            // neighbors, which will be both odd and even.  Run through the
+            // neighbors vertices to find even.
+
+            for (OpenVolumeMesh::VertexOHalfEdgeIter _vohiter = subdivided_mesh->voh_iter(neighbor_vhandle);
+                 _vohiter.valid(); ++_vohiter)
+            {
+                OpenVolumeMesh::HalfEdgeHandle _heh = *_vohiter;
+                const OpenVolumeMesh::OpenVolumeMeshEdge& _edge = subdivided_mesh->halfedge(_heh);
+                const OpenVolumeMesh::VertexHandle& _from_vertex = _edge.from_vertex();
+                const OpenVolumeMesh::VertexHandle& _to_vertex = _edge.to_vertex();
+
+                OpenVolumeMesh::VertexHandle _neighbor_vhandle = _from_vertex;
+                if (_from_vertex == neighbor_vhandle)
+                    _neighbor_vhandle = _to_vertex;
+
+                if (_neighbor_vhandle == vhandle)
+                    continue;
+                
+                if (subdivided_is_even_map.find(_neighbor_vhandle)->second)
+                {
+                    neighbor_vhandle = _neighbor_vhandle;
+                    break;
+                }
+            }
+        }
+        vbm[neighbor_vhandle] = true;
+    }
+}
+
+
+
+
 
 void Subdivider::handle_even_vertex(
     OpenVolumeMesh::GeometricPolyhedralMeshV4f* subdivided_mesh,
     const OpenVolumeMesh::VertexHandle& vhandle,
     const VecMap& subdivided_original_position_map)
 {
-
     uint64_t num_neighbors = 0;
     OpenVolumeMesh::Geometry::Vec4f neighbor_vec(0,0,0,0);
     
@@ -75,7 +268,7 @@ void Subdivider::handle_even_vertex(
         OpenVolumeMesh::HalfEdgeHandle heh = *vohiter;
         const OpenVolumeMesh::OpenVolumeMeshEdge& edge = subdivided_mesh->halfedge(heh);
         const OpenVolumeMesh::VertexHandle& from_vertex = edge.from_vertex();
-        const OpenVolumeMesh::VertexHandle& to_vertex = edge.from_vertex();
+        const OpenVolumeMesh::VertexHandle& to_vertex = edge.to_vertex();
 
         OpenVolumeMesh::VertexHandle neighbor_vhandle = from_vertex;
         if (from_vertex == vhandle)
@@ -213,7 +406,7 @@ void Subdivider::create_new_faces(
     VecMap& subdivided_original_position_map)
 {
     std::vector<OpenVolumeMesh::VertexHandle> vertices;
-
+    
     // Add a new face in bottom left of triangle
     vertices.push_back(bottom_left);
     vertices.push_back(midpoint_top_bottom_left);
@@ -265,6 +458,7 @@ OpenVolumeMesh::VertexHandle Subdivider::find_or_insert_even_vertex(
         
         OpenVolumeMesh::VertexHandle subdivided_vertex_handle =
             subdivided_mesh->add_vertex(vertex_vec);
+
         
         // notate that the vertex is even
         subdivided_is_even_map[subdivided_vertex_handle] = true;
@@ -322,6 +516,7 @@ OpenVolumeMesh::VertexHandle Subdivider::find_or_insert_midpoint(
 
         OpenVolumeMesh::VertexHandle midpoint_handle =
             subdivided_mesh->add_vertex(midpoint);
+
         
         // notate that the vertex is odd
         subdivided_is_even_map[midpoint_handle] = false;

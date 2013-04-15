@@ -6,6 +6,9 @@
 #include "Util.hpp"
 #include <OpenVolumeMesh/Mesh/PolyhedralMesh.hh>
 
+#define ODD_IMMEDIATE_NEIGHBOR_FACTOR (3./8.)
+#define ODD_DISTANT_NEIGHBOR_FACTOR (1./8.)
+
 
 class VertexHandleHasher{
 public:
@@ -42,6 +45,8 @@ typedef std::unordered_map<
 
 typedef std::unordered_map<OpenVolumeMesh::VertexHandle,bool,
     VertexHandleHasher> EvenMap;
+
+typedef EvenMap VertexBoolMap;
 
 typedef std::unordered_map<
     OpenVolumeMesh::VertexHandle,OpenVolumeMesh::Geometry::Vec4f,
@@ -108,6 +113,34 @@ private:
     static void handle_even_vertex(
         OpenVolumeMesh::GeometricPolyhedralMeshV4f* subdivided_mesh,
         const OpenVolumeMesh::VertexHandle& vhandle,
+        const VecMap& subdivided_original_position_map);
+
+    static void handle_odd_vertex(
+        OpenVolumeMesh::GeometricPolyhedralMeshV4f* subdivided_mesh,
+        const OpenVolumeMesh::VertexHandle& vhandle,
+        const EvenMap& subdivided_is_even_map,
+        const VecMap& subdivided_original_position_map);
+    
+    static void handle_odd_vertex(
+        OpenVolumeMesh::GeometricPolyhedralMeshV4f* subdivided_mesh,
+        const OpenVolumeMesh::VertexHandle& vhandle,
+        const VecMap& subdivided_original_position_map);
+
+    static void get_even_neighbor_vertices(
+        OpenVolumeMesh::GeometricPolyhedralMeshV4f* subdivided_mesh,
+        const OpenVolumeMesh::VertexHandle& vhandle,
+        const EvenMap& subdivided_is_even_map,
+        VertexBoolMap& vbm);
+
+
+    static void distant_neighbor_vec(
+        OpenVolumeMesh::GeometricPolyhedralMeshV4f* subdivided_mesh,
+        const OpenVolumeMesh::VertexHandle& vhandle,
+        const OpenVolumeMesh::VertexHandle& neighbor_0_vhandle,
+        const OpenVolumeMesh::VertexHandle& neighbor_1_vhandle,
+        OpenVolumeMesh::Geometry::Vec4f& dist_0_vec,
+        OpenVolumeMesh::Geometry::Vec4f& dist_1_vec,
+        const EvenMap& subdivided_is_even_map,
         const VecMap& subdivided_original_position_map);
     
     
