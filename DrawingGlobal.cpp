@@ -6,12 +6,14 @@
 #include <GL/glut.h>
 #include <iostream>
 #include <OpenVolumeMesh/Mesh/PolyhedralMesh.hh>
+#include "Subdivider.hpp"
 
 DrawingGlobal::DrawingGlobal(
     OpenVolumeMesh::GeometricPolyhedralMeshV4f* _obj_mesh,
     VertexNormal::VertNormalMap* _vnmap, Vertex::VertexMap* _vmap)
- : obj_mesh(_obj_mesh), vnmap(_vnmap),vmap(_vmap),shading(GL_FLAT),
-   gl_begin_type(GL_TRIANGLES)
+ : obj_mesh(_obj_mesh), vnmap(_vnmap),vmap(_vmap),
+   original_obj_mesh(_obj_mesh), original_vnmap(_vnmap),original_vmap(_vmap),
+   shading(GL_FLAT),gl_begin_type(GL_TRIANGLES)
 {
     diffuse[0] = 1.0;
     diffuse[1] = 1.0;
@@ -68,6 +70,19 @@ void DrawingGlobal::keyboard_func(unsigned char key,int x, int y)
         gl_begin_type = GL_LINE_LOOP;
     else if (key == '4')
         gl_begin_type = GL_TRIANGLES;
+
+    else if (key == '+')
+    {
+        vnmap = new VertexNormal::VertNormalMap;
+        obj_mesh = Subdivider::subdivide(obj_mesh);
+        VertexNormal::calculate_normals(*vnmap,obj_mesh);
+    }
+    else if (key == '0')
+    {
+        obj_mesh = original_obj_mesh;
+        vnmap = original_vnmap;
+        vmap = original_vmap;
+    }
     
     glutPostRedisplay();    
 }
@@ -142,6 +157,12 @@ void DrawingGlobal::render_frame()
             const OpenVolumeMesh::Geometry::Vec4f& vertex_vec = obj_mesh->vertex(from_vertex);
 
             vertex_points.push_back(vertex_vec);
+
+            if (vnmap->find(from_vertex) == vnmap->end())
+                assert(false);
+
+            VertexNormal* vn = (*vnmap)[from_vertex];
+            
             vertex_normals.push_back((*vnmap)[from_vertex]->open_vec3());
             vertex_normal += (*vnmap)[from_vertex]->open_vec3();
         }

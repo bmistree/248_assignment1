@@ -39,6 +39,11 @@ private:
     OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh;
     VertexNormal::VertNormalMap* vnmap;
     Vertex::VertexMap* vmap;
+
+    OpenVolumeMesh::GeometricPolyhedralMeshV4f* original_obj_mesh;
+    VertexNormal::VertNormalMap* original_vnmap;
+    Vertex::VertexMap* original_vmap;
+    
     Point4 eye;
     GLfloat window_width,window_height;
 
