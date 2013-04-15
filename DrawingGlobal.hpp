@@ -6,6 +6,7 @@
 #include "ObjElement.hpp"
 #include "Util.hpp"
 #include <OpenVolumeMesh/Mesh/PolyhedralMesh.hh>
+#include "bitmap_image.hpp"
 
 #define PERSPECTIVE_NEAR_PLANE_ANGLE 60.f
 #define INITIAL_EYE_X 0.f
@@ -24,7 +25,7 @@ public:
         OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh,
         TextureCoordinate::TextureCoordinateMap* tc_map,
         VertexNormal::VertNormalMap* vnmap,
-        Vertex::VertexMap* vmap);
+        Vertex::VertexMap* vmap, bitmap_image* bm);
     ~DrawingGlobal();
 
     void set_window_width_height(GLfloat window_width,GLfloat window_height);
@@ -42,6 +43,8 @@ private:
     VertexNormal::VertNormalMap* vnmap;
     Vertex::VertexMap* vmap;
 
+    void draw_global_coords();
+    
     OpenVolumeMesh::GeometricPolyhedralMeshV4f* original_obj_mesh;
     TextureCoordinate::TextureCoordinateMap* oringal_tc_map;
     VertexNormal::VertNormalMap* original_vnmap;
@@ -52,6 +55,9 @@ private:
     float angle;
     GLfloat window_width,window_height;
 
+    bitmap_image* bm;
+    GLuint texture_id;
+    
 
     uint64_t shading;
     uint64_t gl_begin_type;

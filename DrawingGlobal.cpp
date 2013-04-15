@@ -7,7 +7,7 @@
 #include <iostream>
 #include <OpenVolumeMesh/Mesh/PolyhedralMesh.hh>
 #include "Subdivider.hpp"
-
+#include "bitmap_image.hpp"
 
 static void b_normalize(OpenVolumeMesh::Geometry::Vec3f& normal)
 {
@@ -20,10 +20,10 @@ static void b_normalize(OpenVolumeMesh::Geometry::Vec3f& normal)
 DrawingGlobal::DrawingGlobal(
     OpenVolumeMesh::GeometricPolyhedralMeshV4f* _obj_mesh,
     TextureCoordinate::TextureCoordinateMap* _tc_map,
-    VertexNormal::VertNormalMap* _vnmap, Vertex::VertexMap* _vmap)
+    VertexNormal::VertNormalMap* _vnmap, Vertex::VertexMap* _vmap, bitmap_image* _bm)
  : obj_mesh(_obj_mesh), tc_map(_tc_map),vnmap(_vnmap),vmap(_vmap),
    original_obj_mesh(_obj_mesh), original_vnmap(_vnmap),original_vmap(_vmap),
-   shading(GL_FLAT),gl_begin_type(GL_TRIANGLES)
+   bm(_bm),shading(GL_FLAT),gl_begin_type(GL_TRIANGLES)
 {
     diffuse[0] = 1.0;
     diffuse[1] = 1.0;
@@ -51,6 +51,16 @@ DrawingGlobal::DrawingGlobal(
     eye_direction_delta.z = - 1.0f;
 
     angle = 0;
+
+    if (bm != NULL)
+    {
+        glGenTextures(1,&texture_id);
+        glTexImage2D(GL_TEXTURE_2D,0,GL_RGB,
+            bm->width(), bm->height(),0,GL_RGB,
+            GL_UNSIGNED_BYTE,bm->data());
+        glBindTexture(GL_TEXTURE_2D,texture_id);
+    }
+    
 }
 
 void DrawingGlobal::set_window_width_height(
@@ -123,33 +133,8 @@ void DrawingGlobal::keyboard_func(unsigned char key,int x, int y)
     glutPostRedisplay();    
 }
 
-
-void DrawingGlobal::render_frame()
+void DrawingGlobal::draw_global_coords()
 {
-    glDisable(GL_CULL_FACE);
-    
-    glShadeModel(shading);
-    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diffuse);
-    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specular);
-    glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, shininess);
-    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, ambient);
-
-    
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glPushMatrix();
-    glLoadIdentity();
-
-    
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluPerspective(
-        PERSPECTIVE_NEAR_PLANE_ANGLE,  // angle to top from center
-        (window_width) / (window_height), //aspect ratio
-        .01f, // dist to near clip plane
-        100.f // dist to far clip plane
-    );
-
-
     // hard code the position of the spotlight 5 units above the origin with a
     // 30 degree cutoff.
     GLfloat light_pos[4] = {0.f,5.f,0.f,.5f};
@@ -165,6 +150,7 @@ void DrawingGlobal::render_frame()
 
     // light1 is an ambient light
     GLfloat ambientlight[ ] = {0.3, 0.3 , 0.3, 1.0};
+    //GLfloat ambientlight[ ] = {0.3, 0.3 , 0.3, 1.0};
     glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambientlight);
 
     // enable a spotlight
@@ -176,9 +162,6 @@ void DrawingGlobal::render_frame()
     glEnable(GL_COLOR_MATERIAL);
     glDisable(GL_CULL_FACE);
     
-    
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
 
     // draw ground plane before lookat
     glColor3f(.7f,0.f,0.f);
@@ -217,6 +200,43 @@ void DrawingGlobal::render_frame()
             glEnd();
         }
     }
+}
+
+void DrawingGlobal::render_frame()
+{
+    glDisable(GL_CULL_FACE);
+    if (bm != NULL)
+        glEnable(GL_TEXTURE_2D);
+
+    
+    glShadeModel(shading);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diffuse);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specular);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, shininess);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, ambient);
+
+    
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glPushMatrix();
+    glLoadIdentity();
+
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+
+    draw_global_coords();
+    
+    
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluPerspective(
+        PERSPECTIVE_NEAR_PLANE_ANGLE,  // angle to top from center
+        (window_width) / (window_height), //aspect ratio
+        .01f, // dist to near clip plane
+        100.f // dist to far clip plane
+    );
+
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
 
         
     gluLookAt(
@@ -228,8 +248,9 @@ void DrawingGlobal::render_frame()
         0.f,1.f,0.f);
 
     glDisable(GL_CULL_FACE);
-    
-    glColor4f(.5f,.5f,.5f,1.0f);
+
+    // if (bm == NULL)
+    //     glColor4f(.5f,.5f,.5f,1.0f);
     for (OpenVolumeMesh::FaceIter iter = obj_mesh->faces_begin();
          iter != obj_mesh->faces_end(); ++iter)
     {
@@ -241,6 +262,8 @@ void DrawingGlobal::render_frame()
         // calculate the face normal as average of vertex normal and draw points.
         std::vector<OpenVolumeMesh::Geometry::Vec4f> vertex_points;
         std::vector<OpenVolumeMesh::Geometry::Vec3f> vertex_normals;
+        std::vector<std::pair<float,float> > texture_coords;
+        
         OpenVolumeMesh::Geometry::Vec3f vertex_normal(0,0,0);
         for (std::vector<OpenVolumeMesh::HalfEdgeHandle>::const_iterator he_iter = half_edge_handles.begin();
              he_iter != half_edge_handles.end(); ++he_iter)
@@ -254,6 +277,13 @@ void DrawingGlobal::render_frame()
             if (vnmap->find(from_vertex) == vnmap->end())
                 assert(false);
 
+            if (bm != NULL)
+            {
+                TextureCoordinate* tc = (*tc_map)[from_vertex];
+                std::pair<float,float> p (tc->get_u(),tc->get_v());
+                texture_coords.push_back(p);
+            }
+            
             VertexNormal* vn = (*vnmap)[from_vertex];
             vertex_normals.push_back(vn->open_vec3());
             vertex_normal += vn->open_vec3();
@@ -270,7 +300,7 @@ void DrawingGlobal::render_frame()
                 vertex_normal[1],
                 vertex_normal[2]);
         }        
-        
+
         // actually draw the points
         uint64_t counter = 0;
         for (std::vector<OpenVolumeMesh::Geometry::Vec4f>::const_iterator citer = vertex_points.begin();
@@ -285,12 +315,21 @@ void DrawingGlobal::render_frame()
                     smooth_normal[1],
                     smooth_normal[2]);
             }
+
             
+            if (counter < texture_coords.size())
+            {
+                std::pair<float,float> p = texture_coords[counter];
+                glTexCoord2f(p.first,p.second);
+            }
+
             glVertex4f(
                 (GLfloat)((*citer)[0]),
                 (GLfloat)((*citer)[1]),
                 (GLfloat)((*citer)[2]),
                 (GLfloat)((*citer)[3]));
+
+            ++counter;
         }
         glEnd();
     }

@@ -9,7 +9,7 @@
 #include <GL/gl.h>
 #include "DrawingGlobal.hpp"
 #include "Util.hpp"
-
+#include "bitmap_image.hpp"
 #include "Subdivider.hpp"
 
 #define WINDOW_WIDTH 640
@@ -36,7 +36,11 @@ int main(int argc, char** argv)
         new TextureCoordinate::TextureCoordinateMap;
     TextureCoordinate::TextureCoordinateMap* open_tc_map =
         new TextureCoordinate::TextureCoordinateMap;
-    
+
+    bitmap_image* bm = NULL;
+    if (argc > 2)
+        bm = new bitmap_image(std::string(argv[2]));
+
     
     OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh =
         ObjReader::read_object_file(
@@ -46,7 +50,7 @@ int main(int argc, char** argv)
         VertexNormal::calculate_normals(*open_vnmap,obj_mesh);
     
     
-    drawing_global = new DrawingGlobal(obj_mesh,open_tc_map,open_vnmap,vmap);
+    drawing_global = new DrawingGlobal(obj_mesh,open_tc_map,open_vnmap,vmap,bm);
     setup_gl(filename,argc,argv,drawing_global);
 
     glutMainLoop();

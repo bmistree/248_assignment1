@@ -39,7 +39,7 @@ public:
 class TextureCoordinate : public ObjElement
 {
 public:
-    typedef uint64_t TextureCoordId;
+    typedef int TextureCoordId;
     typedef std::unordered_map<TextureCoordId,TextureCoordinate*> TextureCoordinateMap;
     
     ~TextureCoordinate();
@@ -54,6 +54,14 @@ public:
         return tid;
     }
             
+    GLfloat get_u()
+    {
+        return u;
+    }
+    GLfloat get_v()
+    {
+        return v;
+    }
     
 
 private:
