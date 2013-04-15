@@ -247,10 +247,15 @@ void VertexNormal::calculate_normals(
             average_normal += inter;
         }
 
-        current_handle = neighbor_handles[neighbor_handles.size() -1];
-        next_handle = neighbor_handles[0];
+        // current_handle = neighbor_handles[neighbor_handles.size() -1];
+        // next_handle = neighbor_handles[0];
+        //average_normal += calc_normal(vhandle,current_handle,next_handle,obj_mesh);
+
+        next_handle = neighbor_handles[neighbor_handles.size() -1];
+        current_handle = neighbor_handles[0];
         average_normal += calc_normal(vhandle,current_handle,next_handle,obj_mesh);
 
+        
         float num_normals = neighbor_handles.size() -1;
         average_normal *= (1./num_normals);
 
