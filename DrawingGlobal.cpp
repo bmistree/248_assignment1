@@ -8,6 +8,15 @@
 #include <OpenVolumeMesh/Mesh/PolyhedralMesh.hh>
 #include "Subdivider.hpp"
 
+
+static void b_normalize(OpenVolumeMesh::Geometry::Vec3f& normal)
+{
+    float len = sqrt(normal[0]*normal[0] + normal[1]*normal[1] + normal[2]*normal[2]);
+    float mult = 1./len;
+    normal = mult * normal;
+}
+
+
 DrawingGlobal::DrawingGlobal(
     OpenVolumeMesh::GeometricPolyhedralMeshV4f* _obj_mesh,
     VertexNormal::VertNormalMap* _vnmap, Vertex::VertexMap* _vmap)
@@ -246,6 +255,8 @@ void DrawingGlobal::render_frame()
         {
             float averager = 1./((float)half_edge_handles.size());
             vertex_normal *= averager;
+            b_normalize(vertex_normal);
+
             glNormal3f(
                 vertex_normal[0],
                 vertex_normal[1],
@@ -260,6 +271,7 @@ void DrawingGlobal::render_frame()
             if (shading == GL_SMOOTH)
             {
                 OpenVolumeMesh::Geometry::Vec3f smooth_normal = vertex_normals[counter];
+                b_normalize(smooth_normal);
                 glNormal3f(
                     smooth_normal[0],
                     smooth_normal[1],
