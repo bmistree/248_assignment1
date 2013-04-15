@@ -10,7 +10,8 @@
 DrawingGlobal::DrawingGlobal(
     OpenVolumeMesh::GeometricPolyhedralMeshV4f* _obj_mesh,
     VertexNormal::VertNormalMap* _vnmap, Vertex::VertexMap* _vmap)
- : obj_mesh(_obj_mesh), vnmap(_vnmap),vmap(_vmap),shading(GL_FLAT)
+ : obj_mesh(_obj_mesh), vnmap(_vnmap),vmap(_vmap),shading(GL_FLAT),
+   gl_begin_type(GL_TRIANGLES)
 {
     eye.x = INITIAL_EYE_X;
     eye.y = INITIAL_EYE_Y;
@@ -46,6 +47,10 @@ void DrawingGlobal::keyboard_func(unsigned char key,int x, int y)
         shading = GL_SMOOTH;
     else if (key == '2')
         shading = GL_FLAT;
+    else if (key == '3')
+        gl_begin_type = GL_LINE_LOOP;
+    else if (key == '4')
+        gl_begin_type = GL_TRIANGLES;
     
     glutPostRedisplay();    
 }
@@ -83,8 +88,7 @@ void DrawingGlobal::render_frame()
     for (OpenVolumeMesh::FaceIter iter = obj_mesh->faces_begin();
          iter != obj_mesh->faces_end(); ++iter)
     {
-        // glBegin(GL_LINE_LOOP);
-        glBegin(GL_TRIANGLES);
+        glBegin(gl_begin_type);
         
         const OpenVolumeMesh::OpenVolumeMeshFace& face = obj_mesh->face(*iter);
         const std::vector<OpenVolumeMesh::HalfEdgeHandle>& half_edge_handles = face.halfedges();

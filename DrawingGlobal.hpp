@@ -44,9 +44,8 @@ private:
 
 
     uint64_t shading;
-
-    
-    
+    uint64_t gl_begin_type;
+        
 };
 
 #endif
