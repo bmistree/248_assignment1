@@ -99,6 +99,19 @@ void DrawingGlobal::render_frame()
 
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
+
+    // draw ground plane before lookat
+    glColor3f(.7f,0.f,0.f);
+    float y_pos = -4.f;
+    glBegin(GL_QUADS);
+    glNormal3f(0,.707,-.707);
+    glVertex3f(-20.f,y_pos,-20.f);
+    glVertex3f(-20.f,y_pos,20.f);
+    glVertex3f(20.f,y_pos,20.f);
+    glVertex3f(20.f,y_pos,-20.f);
+    glEnd();
+
+        
     gluLookAt(
         // eye positioning
         eye.x,eye.y,eye.z,
@@ -168,16 +181,6 @@ void DrawingGlobal::render_frame()
         glEnd();
     }
 
-    // draw ground plane
-    glColor3f(.7f,0.f,0.f);
-    float y_pos = -4.f;
-    glBegin(GL_QUADS);
-    glNormal3f(0,.707,-.707);
-    glVertex3f(-20.f,y_pos,-20.f);
-    glVertex3f(-20.f,y_pos,20.f);
-    glVertex3f(20.f,y_pos,20.f);
-    glVertex3f(20.f,y_pos,-20.f);
-    glEnd();
 
     glutSwapBuffers();
     glPopMatrix();
