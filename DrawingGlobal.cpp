@@ -10,9 +10,12 @@
 
 DrawingGlobal::DrawingGlobal(
     OpenVolumeMesh::GeometricPolyhedralMeshV4f* _obj_mesh,
+    Vertex::VertexNeighborMap* _vertex_neighbor_map,
     VertexNormal::VertNormalMap* _vnmap, Vertex::VertexMap* _vmap)
- : obj_mesh(_obj_mesh), vnmap(_vnmap),vmap(_vmap),
-   original_obj_mesh(_obj_mesh), original_vnmap(_vnmap),original_vmap(_vmap),
+ : obj_mesh(_obj_mesh), vertex_neighbor_map(_vertex_neighbor_map),
+   vnmap(_vnmap),vmap(_vmap),
+   original_obj_mesh(_obj_mesh), original_vertex_neighbor_map(_vertex_neighbor_map),
+   original_vnmap(_vnmap),original_vmap(_vmap),
    shading(GL_FLAT),gl_begin_type(GL_TRIANGLES)
 {
     diffuse[0] = 1.0;
@@ -74,14 +77,16 @@ void DrawingGlobal::keyboard_func(unsigned char key,int x, int y)
     else if (key == '+')
     {
         vnmap = new VertexNormal::VertNormalMap;
+        vertex_neighbor_map = new Vertex::VertexNeighborMap;
         obj_mesh = Subdivider::subdivide(obj_mesh);
-        VertexNormal::calculate_normals(*vnmap,obj_mesh);
+        VertexNormal::calculate_normals(*vertex_neighbor_map,*vnmap,obj_mesh);
     }
     else if (key == '0')
     {
         obj_mesh = original_obj_mesh;
         vnmap = original_vnmap;
         vmap = original_vmap;
+        vertex_neighbor_map = original_vertex_neighbor_map;
     }
     
     glutPostRedisplay();    

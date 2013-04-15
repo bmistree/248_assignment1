@@ -127,7 +127,8 @@ TextureCoordinate* TextureCoordinate::construct_from_line(
 /************* FACE *************/
 OpenVolumeMesh::FaceHandle Face::construct_from_line(
     OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh,
-    const Vertex::VertexMap& vmap, std::string line)
+    Vertex::VertexNeighborMap& vert_neighbor_map,
+    const Vertex::VertexMap& vmap,std::string line)
 {
     OpenVolumeMesh::FaceHandle did_not_find;
     
@@ -185,6 +186,16 @@ OpenVolumeMesh::FaceHandle Face::construct_from_line(
                 to_search_from = matches[3].second;
             }
         }
+
+        for (uint64_t i = 0; i < vertices.size() - 1; ++i)
+        {
+            vert_neighbor_map[vertices[i]].push_back(vertices[i+1]);
+            vert_neighbor_map[vertices[i+1]].push_back(vertices[i]);
+        }
+        vert_neighbor_map[vertices[0]].push_back(vertices[vertices.size() -1]);
+        vert_neighbor_map[vertices[vertices.size() -1]].push_back(vertices[0]);
+
+        
         OpenVolumeMesh::FaceHandle ovm_id = obj_mesh->add_face(vertices);
         return ovm_id;
     }
@@ -205,6 +216,7 @@ VertexNormal::VertexNormal(const GLfloat &x, const GLfloat& y, const GLfloat&z)
 }
 
 void VertexNormal::calculate_normals(
+    Vertex::VertexNeighborMap& vertex_neighbor_map,
     VertNormalMap& vnmap,
     OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh)
 {
@@ -215,23 +227,26 @@ void VertexNormal::calculate_normals(
     {
         OpenVolumeMesh::VertexHandle vhandle = *viter;
 
-        // get all edges associated with vertex handle and put neighbors into
-        // neighbor_handles
-        std::vector<OpenVolumeMesh::VertexHandle> neighbor_handles;
-        for(OpenVolumeMesh::VertexOHalfEdgeIter vohiter = obj_mesh->voh_iter(vhandle);
-            vohiter.valid(); ++vohiter)
-        {
-            OpenVolumeMesh::HalfEdgeHandle heh = *vohiter;
-            const OpenVolumeMesh::OpenVolumeMeshEdge& edge = obj_mesh->halfedge(heh);
-            const OpenVolumeMesh::VertexHandle& from_vertex = edge.from_vertex();
-            const OpenVolumeMesh::VertexHandle& to_vertex = edge.to_vertex();
+        std::vector<OpenVolumeMesh::VertexHandle>neighbor_handles = vertex_neighbor_map[vhandle];
 
-            OpenVolumeMesh::VertexHandle neighbor_vhandle = from_vertex;
-            if (from_vertex == vhandle)
-                neighbor_vhandle = to_vertex;
+        
+        // // get all edges associated with vertex handle and put neighbors into
+        // // neighbor_handles
+        // std::vector<OpenVolumeMesh::VertexHandle> neighbor_handles;
+        // for(OpenVolumeMesh::VertexOHalfEdgeIter vohiter = obj_mesh->voh_iter(vhandle);
+        //     vohiter.valid(); ++vohiter)
+        // {
+        //     OpenVolumeMesh::HalfEdgeHandle heh = *vohiter;
+        //     const OpenVolumeMesh::OpenVolumeMeshEdge& edge = obj_mesh->halfedge(heh);
+        //     const OpenVolumeMesh::VertexHandle& from_vertex = edge.from_vertex();
+        //     const OpenVolumeMesh::VertexHandle& to_vertex = edge.to_vertex();
 
-            neighbor_handles.push_back(neighbor_vhandle);
-        }
+        //     OpenVolumeMesh::VertexHandle neighbor_vhandle = from_vertex;
+        //     if (from_vertex == vhandle)
+        //         neighbor_vhandle = to_vertex;
+
+        //     neighbor_handles.push_back(neighbor_vhandle);
+        // }
 
         OpenVolumeMesh::Geometry::Vec3f average_normal (0,0,0);
         
@@ -247,13 +262,13 @@ void VertexNormal::calculate_normals(
             average_normal += inter;
         }
 
-        // current_handle = neighbor_handles[neighbor_handles.size() -1];
-        // next_handle = neighbor_handles[0];
-        //average_normal += calc_normal(vhandle,current_handle,next_handle,obj_mesh);
-
-        next_handle = neighbor_handles[neighbor_handles.size() -1];
-        current_handle = neighbor_handles[0];
+        current_handle = neighbor_handles[neighbor_handles.size() -1];
+        next_handle = neighbor_handles[0];
         average_normal += calc_normal(vhandle,current_handle,next_handle,obj_mesh);
+
+        // next_handle = neighbor_handles[neighbor_handles.size() -1];
+        // current_handle = neighbor_handles[0];
+        // average_normal += calc_normal(vhandle,current_handle,next_handle,obj_mesh);
 
         
         float num_normals = neighbor_handles.size() -1;

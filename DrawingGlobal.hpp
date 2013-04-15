@@ -21,9 +21,11 @@ class DrawingGlobal
 {
 public:
     DrawingGlobal(
-        OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh,
-        VertexNormal::VertNormalMap* vnmap,
-        Vertex::VertexMap* vmap);
+        OpenVolumeMesh::GeometricPolyhedralMeshV4f* _obj_mesh,
+        Vertex::VertexNeighborMap* _vertex_neighbor_map,
+        VertexNormal::VertNormalMap* _vnmap, Vertex::VertexMap* _vmap);
+    
+
     ~DrawingGlobal();
 
     void set_window_width_height(GLfloat window_width,GLfloat window_height);
@@ -37,10 +39,12 @@ public:
     
 private:
     OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh;
+    Vertex::VertexNeighborMap* vertex_neighbor_map;
     VertexNormal::VertNormalMap* vnmap;
     Vertex::VertexMap* vmap;
 
     OpenVolumeMesh::GeometricPolyhedralMeshV4f* original_obj_mesh;
+    Vertex::VertexNeighborMap* original_vertex_neighbor_map;
     VertexNormal::VertNormalMap* original_vnmap;
     Vertex::VertexMap* original_vmap;
     

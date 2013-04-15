@@ -31,6 +31,11 @@ public:
     typedef VertexMap::iterator VertexMapIter;
     typedef VertexMap::const_iterator VertexMapCIter;
 
+    typedef std::unordered_map<OpenVolumeMesh::VertexHandle,
+        std::vector<OpenVolumeMesh::VertexHandle>,
+        VertexHandleHasher> VertexNeighborMap;
+
+    
     static OpenVolumeMesh::VertexHandle construct_from_line(
         OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh,VertexMap& vmap,
         std::string line);
@@ -73,7 +78,10 @@ public:
     static bool construct_from_line(
         VertNormalMap& vnmap,std::string line);
 
-    static void calculate_normals(VertNormalMap& vnmap,
+    
+    static void calculate_normals(
+        Vertex::VertexNeighborMap& vert_neighbor_map,
+        VertNormalMap& vnmap,
         OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh);
 
     OpenVolumeMesh::Geometry::Vec3f open_vec3() const
@@ -102,9 +110,14 @@ private:
 class Face : public ObjElement
 {
 public:
+    
     static OpenVolumeMesh::FaceHandle construct_from_line(
         OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh,
-        const Vertex::VertexMap& vmap, std::string line);
+        Vertex::VertexNeighborMap& vert_neighbor_map,
+        const Vertex::VertexMap& vmap,
+        std::string line);
+
+    
 };
 
 #endif
