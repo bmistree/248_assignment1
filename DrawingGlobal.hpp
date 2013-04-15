@@ -43,6 +43,8 @@ private:
     GLfloat window_width,window_height;
 
 
+    uint64_t shading;
+
     
     
 };

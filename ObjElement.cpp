@@ -251,7 +251,10 @@ void VertexNormal::calculate_normals(
 
         float num_normals = neighbor_handles.size() -1;
         average_normal *= (1./num_normals);
-        // lkjs;
+
+        VertexNormal* vn = new VertexNormal(
+            average_normal[0],average_normal[1],average_normal[2]);
+        vnmap[vhandle] = vn;
     }
 }
 

@@ -75,7 +75,12 @@ public:
 
     static void calculate_normals(VertNormalMap& vnmap,
         OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh);
-        
+
+    OpenVolumeMesh::Geometry::Vec3f open_vec3() const
+    {
+        return OpenVolumeMesh::Geometry::Vec3f (vn.x,vn.y,vn.z);
+    }
+    
     VertexNormalId get_vnid() const
     {
         return vnid;
