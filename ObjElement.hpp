@@ -58,7 +58,8 @@ private:
 class VertexNormal : public ObjElement
 {
 public:
-    typedef uint64_t VertexNormalId;
+//    typedef uint64_t VertexNormalId;
+    typedef int VertexNormalId;
     typedef std::unordered_map<VertexNormalId,VertexNormal*> VertNormalMap;
     typedef VertNormalMap::iterator VertNormalMapIter;
     typedef VertNormalMap::const_iterator VertNormalMapCIter;
@@ -104,6 +105,7 @@ class Face : public ObjElement
 public:
     static OpenVolumeMesh::FaceHandle construct_from_line(
         OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh,
+        VertexNormal::VertNormalMap& obj_vnmap,VertexNormal::VertNormalMap& open_vnmap,
         const Vertex::VertexMap& vmap, std::string line);
 };
 

@@ -238,9 +238,8 @@ void DrawingGlobal::render_frame()
                 assert(false);
 
             VertexNormal* vn = (*vnmap)[from_vertex];
-            
-            vertex_normals.push_back((*vnmap)[from_vertex]->open_vec3());
-            vertex_normal += (*vnmap)[from_vertex]->open_vec3();
+            vertex_normals.push_back(vn->open_vec3());
+            vertex_normal += vn->open_vec3();
         }
 
         if (shading == GL_FLAT)

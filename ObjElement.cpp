@@ -127,6 +127,7 @@ TextureCoordinate* TextureCoordinate::construct_from_line(
 /************* FACE *************/
 OpenVolumeMesh::FaceHandle Face::construct_from_line(
     OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh,
+    VertexNormal::VertNormalMap& obj_vnmap,VertexNormal::VertNormalMap& open_vnmap,
     const Vertex::VertexMap& vmap, std::string line)
 {
     OpenVolumeMesh::FaceHandle did_not_find;
@@ -140,6 +141,8 @@ OpenVolumeMesh::FaceHandle Face::construct_from_line(
         return did_not_find;
 
     std::vector<OpenVolumeMesh::VertexHandle> vertices;
+    VertexNormal::VertexNormalId vnid;
+    bool had_normal = false;
     if (line[0] == 'f')
     {
         // start from 1 to remove command character, 'f'.
@@ -175,10 +178,10 @@ OpenVolumeMesh::FaceHandle Face::construct_from_line(
                 tcid = atoi(
                     std::string(matches[2].first,matches[2].second).c_str());
 
-                VertexNormal::VertexNormalId vnid;
                 vnid = atoi(
                     std::string(matches[3].first,matches[3].second).c_str());
-
+                had_normal = true;
+                
                 Vertex::VertexMapCIter citer = vmap.find(vid);
                 vertices.push_back(citer->second);
                 
@@ -186,6 +189,14 @@ OpenVolumeMesh::FaceHandle Face::construct_from_line(
             }
         }
         OpenVolumeMesh::FaceHandle ovm_id = obj_mesh->add_face(vertices);
+        if (had_normal)
+        {
+            if (obj_vnmap.find(vnid) == obj_vnmap.end())
+                assert(false);
+            
+            VertexNormal* vn = obj_vnmap[vnid];
+            open_vnmap[ovm_id] = vn;
+        }
         return ovm_id;
     }
     return did_not_find;
@@ -199,9 +210,9 @@ VertexNormal::~VertexNormal()
 VertexNormal::VertexNormal(const GLfloat &x, const GLfloat& y, const GLfloat&z)
  : vn(x,y,z)
 {
-    
     static VertexNormalId _vnid = 0;
     _vnid += 1;
+    vnid = _vnid;
 }
 
 void VertexNormal::calculate_normals(
@@ -259,7 +270,6 @@ void VertexNormal::calculate_normals(
         float num_normals = neighbor_handles.size() -1;
         average_normal *= (1./num_normals);
 
-        
         VertexNormal* vn = new VertexNormal(
             average_normal[0],average_normal[1],average_normal[2]);
         vnmap[vhandle] = vn;
