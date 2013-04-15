@@ -19,8 +19,9 @@ static void b_normalize(OpenVolumeMesh::Geometry::Vec3f& normal)
 
 DrawingGlobal::DrawingGlobal(
     OpenVolumeMesh::GeometricPolyhedralMeshV4f* _obj_mesh,
+    TextureCoordinate::TextureCoordinateMap* _tc_map,
     VertexNormal::VertNormalMap* _vnmap, Vertex::VertexMap* _vmap)
- : obj_mesh(_obj_mesh), vnmap(_vnmap),vmap(_vmap),
+ : obj_mesh(_obj_mesh), tc_map(_tc_map),vnmap(_vnmap),vmap(_vmap),
    original_obj_mesh(_obj_mesh), original_vnmap(_vnmap),original_vmap(_vmap),
    shading(GL_FLAT),gl_begin_type(GL_TRIANGLES)
 {

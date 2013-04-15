@@ -39,12 +39,22 @@ public:
 class TextureCoordinate : public ObjElement
 {
 public:
+    typedef uint64_t TextureCoordId;
+    typedef std::unordered_map<TextureCoordId,TextureCoordinate*> TextureCoordinateMap;
+    
     ~TextureCoordinate();
-    static TextureCoordinate* construct_from_line(
+    static bool construct_from_line(
         OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh,
+        TextureCoordinateMap& obj_tc_map,
         std::string line);
     virtual void pretty_print() const;
-    typedef uint64_t TextureCoordId;
+
+    TextureCoordId get_tc_id() const
+    {
+        return tid;
+    }
+            
+    
 
 private:
     TextureCoordinate(GLfloat u, GLfloat v, GLfloat w=0.0);
@@ -105,8 +115,15 @@ class Face : public ObjElement
 public:
     static OpenVolumeMesh::FaceHandle construct_from_line(
         OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh,
+        TextureCoordinate::TextureCoordinateMap& obj_tc_map,
+        TextureCoordinate::TextureCoordinateMap& open_tc_map, 
         VertexNormal::VertNormalMap& obj_vnmap,VertexNormal::VertNormalMap& open_vnmap,
         const Vertex::VertexMap& vmap, std::string line);
+    
+    // static OpenVolumeMesh::FaceHandle construct_from_line(
+    //     OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh,
+    //     VertexNormal::VertNormalMap& obj_vnmap,VertexNormal::VertNormalMap& open_vnmap,
+    //     const Vertex::VertexMap& vmap, std::string line);
 };
 
 #endif

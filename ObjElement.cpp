@@ -94,8 +94,9 @@ void TextureCoordinate::pretty_print() const
     printf("List of vertices: u=%f v=%f w=%f",u,v,w);
 }
 
-TextureCoordinate* TextureCoordinate::construct_from_line(
+bool TextureCoordinate::construct_from_line(
     OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh,
+    TextureCoordinate::TextureCoordinateMap& obj_tc_map,
     std::string line)
 {
     remove_comment(line);
@@ -104,7 +105,7 @@ TextureCoordinate* TextureCoordinate::construct_from_line(
     // using 2 here because, we must check at least second index to ensure that
     // not a texture coordinate or normal
     if (line.size() < 2)
-        return NULL;
+        return false;
     
     if ((line[0] == 'v') && (line[1] == 't'))
     {
@@ -118,15 +119,22 @@ TextureCoordinate* TextureCoordinate::construct_from_line(
         if (! tokenizer.eof())
             tokenizer >> w;
 
-        return new TextureCoordinate(
+        TextureCoordinate* tc = new TextureCoordinate(
             (GLfloat)u, (GLfloat)v, (GLfloat)w);
+            
+        obj_tc_map[tc->get_tc_id()] = tc;
+        return true;
     }
-    return NULL;
+    return false;
 }
+
+
 
 /************* FACE *************/
 OpenVolumeMesh::FaceHandle Face::construct_from_line(
     OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh,
+    TextureCoordinate::TextureCoordinateMap& obj_tc_map,
+    TextureCoordinate::TextureCoordinateMap& open_tc_map, 
     VertexNormal::VertNormalMap& obj_vnmap,VertexNormal::VertNormalMap& open_vnmap,
     const Vertex::VertexMap& vmap, std::string line)
 {
@@ -142,6 +150,7 @@ OpenVolumeMesh::FaceHandle Face::construct_from_line(
 
     std::vector<OpenVolumeMesh::VertexHandle> vertices;
     VertexNormal::VertexNormalId vnid;
+    TextureCoordinate::TextureCoordId tcid;
     bool had_normal = false;
     if (line[0] == 'f')
     {
@@ -174,7 +183,6 @@ OpenVolumeMesh::FaceHandle Face::construct_from_line(
                 vid = atoi(
                     std::string(matches[1].first,matches[1].second).c_str());
 
-                TextureCoordinate::TextureCoordId tcid;
                 tcid = atoi(
                     std::string(matches[2].first,matches[2].second).c_str());
 
@@ -196,6 +204,9 @@ OpenVolumeMesh::FaceHandle Face::construct_from_line(
             
             VertexNormal* vn = obj_vnmap[vnid];
             open_vnmap[ovm_id] = vn;
+
+            TextureCoordinate* tc = obj_tc_map[tcid];
+            open_tc_map[ovm_id] = tc;
         }
         return ovm_id;
     }

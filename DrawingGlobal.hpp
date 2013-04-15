@@ -22,6 +22,7 @@ class DrawingGlobal
 public:
     DrawingGlobal(
         OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh,
+        TextureCoordinate::TextureCoordinateMap* tc_map,
         VertexNormal::VertNormalMap* vnmap,
         Vertex::VertexMap* vmap);
     ~DrawingGlobal();
@@ -37,10 +38,12 @@ public:
     
 private:
     OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh;
+    TextureCoordinate::TextureCoordinateMap* tc_map;
     VertexNormal::VertNormalMap* vnmap;
     Vertex::VertexMap* vmap;
 
     OpenVolumeMesh::GeometricPolyhedralMeshV4f* original_obj_mesh;
+    TextureCoordinate::TextureCoordinateMap* oringal_tc_map;
     VertexNormal::VertNormalMap* original_vnmap;
     Vertex::VertexMap* original_vmap;
     

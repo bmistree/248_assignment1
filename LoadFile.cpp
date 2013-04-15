@@ -32,16 +32,21 @@ int main(int argc, char** argv)
     Vertex::VertexMap* vmap = new Vertex::VertexMap;
     VertexNormal::VertNormalMap* obj_vnmap = new VertexNormal::VertNormalMap;
     VertexNormal::VertNormalMap* open_vnmap = new VertexNormal::VertNormalMap;
+    TextureCoordinate::TextureCoordinateMap* obj_tc_map =
+        new TextureCoordinate::TextureCoordinateMap;
+    TextureCoordinate::TextureCoordinateMap* open_tc_map =
+        new TextureCoordinate::TextureCoordinateMap;
+    
     
     OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh =
-        ObjReader::read_object_file(filename,*obj_vnmap,*open_vnmap,*vmap);
+        ObjReader::read_object_file(
+            filename,*obj_tc_map,*open_tc_map,*obj_vnmap,*open_vnmap,*vmap);
     
     if (open_vnmap->size() == 0)
         VertexNormal::calculate_normals(*open_vnmap,obj_mesh);
-
     
     
-    drawing_global = new DrawingGlobal(obj_mesh,open_vnmap,vmap);
+    drawing_global = new DrawingGlobal(obj_mesh,open_tc_map,open_vnmap,vmap);
     setup_gl(filename,argc,argv,drawing_global);
 
     glutMainLoop();
