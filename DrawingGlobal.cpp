@@ -126,11 +126,13 @@ void DrawingGlobal::keyboard_func(unsigned char key,int x, int y)
 
 void DrawingGlobal::render_frame()
 {
+    glDisable(GL_CULL_FACE);
+    
     glShadeModel(shading);
-    glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuse);
-    glMaterialfv(GL_FRONT, GL_SPECULAR, specular);
-    glMaterialfv(GL_FRONT, GL_SHININESS, shininess);
-    glMaterialfv(GL_FRONT, GL_AMBIENT, ambient);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diffuse);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specular);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, shininess);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, ambient);
 
     
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -168,9 +170,12 @@ void DrawingGlobal::render_frame()
     // enable a spotlight
     glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);
+
+    
     glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
     glEnable(GL_COLOR_MATERIAL);
-
+    glDisable(GL_CULL_FACE);
+    
     
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
@@ -221,8 +226,10 @@ void DrawingGlobal::render_frame()
         eye.z + eye_direction_delta.z,
         // camera is oriented so that it's top is in the y direction
         0.f,1.f,0.f);
+
+    glDisable(GL_CULL_FACE);
     
-    glColor3f(.5f,.5f,.5f);
+    glColor4f(.5f,.5f,.5f,1.0f);
     for (OpenVolumeMesh::FaceIter iter = obj_mesh->faces_begin();
          iter != obj_mesh->faces_end(); ++iter)
     {
@@ -285,8 +292,6 @@ void DrawingGlobal::render_frame()
                 (GLfloat)((*citer)[2]),
                 (GLfloat)((*citer)[3]));
         }
-        
-        
         glEnd();
     }
 

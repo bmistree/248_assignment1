@@ -65,5 +65,4 @@ void ObjReader::read_element_from_string(
     
     if (VertexNormal::construct_from_line(obj_vnmap,line_to_read))
         return;
-    
 }
