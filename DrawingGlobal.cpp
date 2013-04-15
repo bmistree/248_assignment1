@@ -112,19 +112,76 @@ void DrawingGlobal::render_frame()
     );
 
 
+    // hard code the position of the spotlight 5 units above the origin with a
+    // 30 degree cutoff.
+    GLfloat light_pos[4] = {0.f,5.f,0.f,.5f};
+    GLfloat light_dir[3] = {0.f,-1.f,0.f};
+    GLfloat light_ambient[4] = {.3,.3,.3,1.0f};
+    GLfloat diffuse[4] = {1.0f,1.0f,1.0f,1.0f};    
+    glLightfv(GL_LIGHT0,GL_POSITION,light_pos);
+    glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
+    glLightf(GL_LIGHT0,GL_SPOT_CUTOFF,45.f);
+    glLightfv(GL_LIGHT0,GL_SPOT_DIRECTION,light_dir);
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse);
+    glLightfv(GL_LIGHT0, GL_SPECULAR, diffuse);
+
+    // light1 is an ambient light
+    GLfloat ambientlight[ ] = {0.3, 0.3 , 0.3, 1.0};
+    glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambientlight);
+
+    // enable a spotlight
+    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT0);
+    glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+    glEnable(GL_COLOR_MATERIAL);
+
+    
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
     // draw ground plane before lookat
     glColor3f(.7f,0.f,0.f);
     float y_pos = -4.f;
-    glBegin(GL_QUADS);
-    glNormal3f(0,.707,-.707);
-    glVertex3f(-20.f,y_pos,-20.f);
-    glVertex3f(-20.f,y_pos,20.f);
-    glVertex3f(20.f,y_pos,20.f);
-    glVertex3f(20.f,y_pos,-20.f);
-    glEnd();
+    float left_side = -20.f;
+    int num_tessels = 200;
+    float dim_tessel = fabs(left_side)*2./num_tessels;
+    for (int i = 0; i < num_tessels; ++i)
+    {
+        for (int j = 0; j < num_tessels; ++j)
+        {
+            glBegin(GL_QUADS);
+            glNormal3f(0,.707,-.707);
+            glVertex3f(
+                left_side + i* dim_tessel,
+                y_pos,
+                left_side + j*dim_tessel);
+            
+            glVertex3f(
+                left_side + i*dim_tessel,
+                y_pos,
+                left_side + (j+1)*dim_tessel);
+
+            
+            glVertex3f(
+                left_side + (i+1)*dim_tessel,
+                y_pos,
+                left_side + (j+1)*dim_tessel);
+
+            glVertex3f(
+                left_side + (i+1)*dim_tessel,
+                y_pos,
+                left_side + j*dim_tessel);
+
+                
+
+            
+            // glVertex3f(-20.f,y_pos,-20.f);
+            // glVertex3f(-20.f,y_pos,20.f);
+            // glVertex3f(20.f,y_pos,20.f);
+            // glVertex3f(20.f,y_pos,-20.f);
+            glEnd();
+        }
+    }
 
         
     gluLookAt(
