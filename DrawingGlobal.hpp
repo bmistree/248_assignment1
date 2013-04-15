@@ -45,6 +45,11 @@ private:
 
     uint64_t shading;
     uint64_t gl_begin_type;
+
+    GLfloat diffuse [4];
+    GLfloat specular[4];
+    GLfloat shininess[1];
+    GLfloat ambient[4];
         
 };
 

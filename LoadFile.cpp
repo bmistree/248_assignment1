@@ -64,7 +64,45 @@ void setup_gl(const std::string &filename, int argc, char** argv,DrawingGlobal* 
     glutInitWindowSize(WINDOW_WIDTH,WINDOW_HEIGHT);
     glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
     glutCreateWindow(filename.c_str());
+
+
+    // hard code the position of the spotlight 5 units above the origin with a
+    // 30 degree cutoff.
+    // GLfloat light_pos[3] = {0.f,5.f,0.f};
+    // GLfloat light_dir[3] = {0.f,0.f,0.f};
+    // GLfloat light_ambient[4] = {.5f,.5f,.5f,.5f};
+    // glLightfv(GL_LIGHT0,GL_POSITION,light_pos);
+    // glLightfv(GL_LIGHT0,GL_SPOT_DIRECTION,light_dir);
+    // glLightf(GL_LIGHT0,GL_SPOT_CUTOFF,30.f);
+    // glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
+    // glLightfv(GL_LIGHT0, GL_DIFFUSE, light_ambient);
+    // glLightfv(GL_LIGHT0, GL_SPECULAR, light_ambient);
+
+    // GLfloat light_pos[3] = {0.f,5.f,-15.f};
+    // GLfloat light_dir[3] = {0.f,0.f,0.f};
+    // GLfloat light_ambient[4] = {1.0f,1.0f,1.0f,1.0f};
+    // glLightfv(GL_LIGHT0,GL_POSITION,light_pos);
+    // glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
+    // glLightf(GL_LIGHT0,GL_SPOT_CUTOFF,90.f);
+    // glLightfv(GL_LIGHT0,GL_SPOT_DIRECTION,light_dir);
+    // glLightfv(GL_LIGHT0, GL_DIFFUSE, light_ambient);
+    // glLightfv(GL_LIGHT0, GL_SPECULAR, light_ambient);
+
+    GLfloat light_pos[3] = {0.f,5.f,0.f};
+    GLfloat light_dir[3] = {0.f,-1.f,0.f};
+    GLfloat light_ambient[4] = {0,0,0,1.0f};
+    GLfloat diffuse[4] = {1.0f,1.0f,1.0f,1.0f};    
+    glLightfv(GL_LIGHT0,GL_POSITION,light_pos);
+    glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
+    glLightf(GL_LIGHT0,GL_SPOT_CUTOFF,30.f);
+    glLightfv(GL_LIGHT0,GL_SPOT_DIRECTION,light_dir);
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse);
+    glLightfv(GL_LIGHT0, GL_SPECULAR, diffuse);
     
+    // enable a spotlight
+    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT0);
+
     glClearColor(0.0f,0.0f,.7f,1.0f);
     glViewport(0,0,WINDOW_WIDTH,WINDOW_HEIGHT);
     dg->set_window_width_height(WINDOW_WIDTH,WINDOW_HEIGHT);

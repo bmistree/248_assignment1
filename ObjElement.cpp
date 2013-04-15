@@ -199,6 +199,7 @@ VertexNormal::~VertexNormal()
 VertexNormal::VertexNormal(const GLfloat &x, const GLfloat& y, const GLfloat&z)
  : vn(x,y,z)
 {
+    
     static VertexNormalId _vnid = 0;
     _vnid += 1;
 }
@@ -232,7 +233,6 @@ void VertexNormal::calculate_normals(
             neighbor_handles.push_back(neighbor_vhandle);
         }
 
-
         OpenVolumeMesh::Geometry::Vec3f average_normal (0,0,0);
         
         OpenVolumeMesh::VertexHandle current_handle;
@@ -242,7 +242,9 @@ void VertexNormal::calculate_normals(
             current_handle = neighbor_handles[i];
             next_handle = neighbor_handles[i+1];
 
-            average_normal += calc_normal(vhandle,current_handle,next_handle,obj_mesh);
+            OpenVolumeMesh::Geometry::Vec3f inter =
+                calc_normal(vhandle,current_handle,next_handle,obj_mesh);
+            average_normal += inter;
         }
 
         current_handle = neighbor_handles[neighbor_handles.size() -1];
@@ -252,6 +254,7 @@ void VertexNormal::calculate_normals(
         float num_normals = neighbor_handles.size() -1;
         average_normal *= (1./num_normals);
 
+        
         VertexNormal* vn = new VertexNormal(
             average_normal[0],average_normal[1],average_normal[2]);
         vnmap[vhandle] = vn;
@@ -273,11 +276,22 @@ OpenVolumeMesh::Geometry::Vec3f VertexNormal::calc_normal(
 
     // Stack overflow showed me how to calculate normals
     // http://stackoverflow.com/questions/1966587/given-3-pts-how-do-i-calculate-the-normal-vector
-    OpenVolumeMesh::Geometry::Vec3f dir = (vec0 - vec1) % (vec2 - vec1);
-
+    //OpenVolumeMesh::Geometry::Vec3f dir = (vec0 - vec1) % (vec2 - vec1);
+    //OpenVolumeMesh::Geometry::Vec3f dir = (vec1 - vec0) % (vec2 - vec0);
+    OpenVolumeMesh::Geometry::Vec3f dir = (vec2 - vec0) % (vec1 - vec0);
+    
     float len = sqrt(dir[0]*dir[0] + dir[1]*dir[1] + dir[2]*dir[2]);
-    float normalization = 1./len;
 
+    if (len == 0)
+    {
+        // handles case of degnerate triangle.
+        dir[0] = 0;
+        dir[1] = 0;
+        dir[2] = 1;
+        return dir;
+    }
+    
+    float normalization = 1./len;
     return dir*normalization;
 }
 

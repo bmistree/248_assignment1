@@ -13,6 +13,23 @@ DrawingGlobal::DrawingGlobal(
  : obj_mesh(_obj_mesh), vnmap(_vnmap),vmap(_vmap),shading(GL_FLAT),
    gl_begin_type(GL_TRIANGLES)
 {
+    diffuse[0] = 1.0;
+    diffuse[1] = 1.0;
+    diffuse[2] = 1.0;
+    diffuse[3] = 1.0;
+
+    specular[0] = 1.0;
+    specular[1] = 1.0;
+    specular[2] = 1.0;
+    specular[3] = 1.0;
+
+    shininess[0] = 10.0f;
+
+    ambient[0] = .1;
+    ambient[1] = .1;
+    ambient[2] = .1;
+    ambient[3] = 1.0;
+
     eye.x = INITIAL_EYE_X;
     eye.y = INITIAL_EYE_Y;
     eye.z = INITIAL_EYE_Z;
@@ -58,6 +75,13 @@ void DrawingGlobal::keyboard_func(unsigned char key,int x, int y)
 
 void DrawingGlobal::render_frame()
 {
+    glShadeModel(shading);
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuse);
+    glMaterialfv(GL_FRONT, GL_SPECULAR, specular);
+    glMaterialfv(GL_FRONT, GL_SHININESS, shininess);
+    glMaterialfv(GL_FRONT, GL_AMBIENT, ambient);
+
+    
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glPushMatrix();
     glLoadIdentity();
@@ -95,6 +119,7 @@ void DrawingGlobal::render_frame()
 
         // calculate the face normal as average of vertex normal and draw points.
         std::vector<OpenVolumeMesh::Geometry::Vec4f> vertex_points;
+        std::vector<OpenVolumeMesh::Geometry::Vec3f> vertex_normals;
         OpenVolumeMesh::Geometry::Vec3f vertex_normal(0,0,0);
         for (std::vector<OpenVolumeMesh::HalfEdgeHandle>::const_iterator he_iter = half_edge_handles.begin();
              he_iter != half_edge_handles.end(); ++he_iter)
@@ -104,22 +129,34 @@ void DrawingGlobal::render_frame()
             const OpenVolumeMesh::Geometry::Vec4f& vertex_vec = obj_mesh->vertex(from_vertex);
 
             vertex_points.push_back(vertex_vec);
-
+            vertex_normals.push_back((*vnmap)[from_vertex]->open_vec3());
             vertex_normal += (*vnmap)[from_vertex]->open_vec3();
         }
 
-        float averager = 1./((float)half_edge_handles.size());
-        vertex_normal *= averager;
-        glNormal3f(
-            vertex_normal[0],
-            vertex_normal[1],
-            vertex_normal[2]);
+        if (shading == GL_FLAT)
+        {
+            float averager = 1./((float)half_edge_handles.size());
+            vertex_normal *= averager;
+            glNormal3f(
+                vertex_normal[0],
+                vertex_normal[1],
+                vertex_normal[2]);
+        }        
         
-
         // actually draw the points
+        uint64_t counter = 0;
         for (std::vector<OpenVolumeMesh::Geometry::Vec4f>::const_iterator citer = vertex_points.begin();
              citer != vertex_points.end(); ++citer)
         {
+            if (shading == GL_SMOOTH)
+            {
+                OpenVolumeMesh::Geometry::Vec3f smooth_normal = vertex_normals[counter];
+                glNormal3f(
+                    smooth_normal[0],
+                    smooth_normal[1],
+                    smooth_normal[2]);
+            }
+            
             glVertex4f(
                 (GLfloat)((*citer)[0]),
                 (GLfloat)((*citer)[1]),
@@ -130,7 +167,18 @@ void DrawingGlobal::render_frame()
         
         glEnd();
     }
-    
+
+    // draw ground plane
+    glColor3f(.7f,0.f,0.f);
+    float y_pos = -4.f;
+    glBegin(GL_QUADS);
+    glNormal3f(0,.707,-.707);
+    glVertex3f(-20.f,y_pos,-20.f);
+    glVertex3f(-20.f,y_pos,20.f);
+    glVertex3f(20.f,y_pos,20.f);
+    glVertex3f(20.f,y_pos,-20.f);
+    glEnd();
+
     glutSwapBuffers();
     glPopMatrix();
     glFlush();
