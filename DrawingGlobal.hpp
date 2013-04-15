@@ -14,7 +14,7 @@
 #define INITIAL_EYE_Z 0.f
 
 #define INCREMENT_POS_ON_KEY .1f
-
+#define ANGLE_INCREMENT .05f
 
 //Responsible for deleting all resources as well as drawing them
 class DrawingGlobal
@@ -45,6 +45,8 @@ private:
     Vertex::VertexMap* original_vmap;
     
     Point4 eye;
+    Point4 eye_direction_delta;
+    float angle;
     GLfloat window_width,window_height;
 
 

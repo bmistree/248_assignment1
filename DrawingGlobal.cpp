@@ -35,6 +35,12 @@ DrawingGlobal::DrawingGlobal(
     eye.x = INITIAL_EYE_X;
     eye.y = INITIAL_EYE_Y;
     eye.z = INITIAL_EYE_Z;
+
+    eye_direction_delta.x = 0;
+    eye_direction_delta.y = 0;
+    eye_direction_delta.z = - 1.0f;
+
+    angle = 0;
 }
 
 void DrawingGlobal::set_window_width_height(
@@ -49,14 +55,34 @@ DrawingGlobal::~DrawingGlobal()
 
 void DrawingGlobal::keyboard_func(unsigned char key,int x, int y)
 {
+    // Based on tutorial here:
+    //http://www.lighthouse3d.com/tutorials/glut-tutorial/keyboard-example-moving-around-the-world/
     if (key == 'i')
-        eye.z -= INCREMENT_POS_ON_KEY;
+    {
+        //eye.z -= INCREMENT_POS_ON_KEY;
+        eye.z += eye_direction_delta.z *INCREMENT_POS_ON_KEY;
+        eye.x += eye_direction_delta.x *INCREMENT_POS_ON_KEY;
+    }
     else if (key == 'k')
-        eye.z += INCREMENT_POS_ON_KEY;
+    {
+        eye.z -= eye_direction_delta.z *INCREMENT_POS_ON_KEY;
+        eye.x -= eye_direction_delta.x *INCREMENT_POS_ON_KEY;
+        //eye.z += INCREMENT_POS_ON_KEY;
+    }
     else if (key == 'l')
-        eye.x += INCREMENT_POS_ON_KEY;
+    {
+        angle += ANGLE_INCREMENT;
+        eye_direction_delta.x = sin(angle);
+        eye_direction_delta.z = -cos(angle);
+    }
     else if (key == 'j')
-        eye.x -= INCREMENT_POS_ON_KEY;
+    {
+        angle -= ANGLE_INCREMENT;
+        eye_direction_delta.x = sin(angle);
+        eye_direction_delta.z = -cos(angle);
+    }
+
+    
     else if (key == 'w')
         eye.y += INCREMENT_POS_ON_KEY;
     else if (key == 's')
@@ -172,13 +198,7 @@ void DrawingGlobal::render_frame()
                 y_pos,
                 left_side + j*dim_tessel);
 
-                
 
-            
-            // glVertex3f(-20.f,y_pos,-20.f);
-            // glVertex3f(-20.f,y_pos,20.f);
-            // glVertex3f(20.f,y_pos,20.f);
-            // glVertex3f(20.f,y_pos,-20.f);
             glEnd();
         }
     }
@@ -187,9 +207,8 @@ void DrawingGlobal::render_frame()
     gluLookAt(
         // eye positioning
         eye.x,eye.y,eye.z,
-        eye.x ,eye.y, eye.z - 1.f,
-        // // looking at origin
-        // 0.f,0.f,0.f,
+        eye.x + eye_direction_delta.x, eye.y + eye_direction_delta.y,
+        eye.z + eye_direction_delta.z,
         // camera is oriented so that it's top is in the y direction
         0.f,1.f,0.f);
     
