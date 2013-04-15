@@ -70,7 +70,7 @@ void setup_gl(const std::string &filename, int argc, char** argv,DrawingGlobal* 
     // 30 degree cutoff.
     GLfloat light_pos[4] = {0.f,5.f,0.f,.5f};
     GLfloat light_dir[3] = {0.f,-1.f,0.f};
-    GLfloat light_ambient[4] = {0,0,0,1.0f};
+    GLfloat light_ambient[4] = {.3,.3,.3,1.0f};
     GLfloat diffuse[4] = {1.0f,1.0f,1.0f,1.0f};    
     glLightfv(GL_LIGHT0,GL_POSITION,light_pos);
     glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
@@ -79,15 +79,14 @@ void setup_gl(const std::string &filename, int argc, char** argv,DrawingGlobal* 
     glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse);
     glLightfv(GL_LIGHT0, GL_SPECULAR, diffuse);
 
-
     // light1 is an ambient light
-    
+    GLfloat ambientlight[ ] = {0.3, 0.3 , 0.3, 1.0};
+    glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambientlight);
 
-    
     // enable a spotlight
     glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);
-    glEnable(GL_LIGHT1);
+    glEnable(GL_COLOR_MATERIAL);
 
     glClearColor(0.0f,0.0f,.7f,1.0f);
     glViewport(0,0,WINDOW_WIDTH,WINDOW_HEIGHT);
