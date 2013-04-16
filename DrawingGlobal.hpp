@@ -24,7 +24,9 @@ public:
         OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh,
         TextureCoordinate::FaceTextureCoordinateMap* tc_map,
         VertexNormal::FaceVertNormalMap* vnmap,
-        Vertex::VertexMap* vmap, Bitmap* bm);
+        Vertex::VertexMap* vmap, Bitmap* bm,
+        VertexNormal::VertNormalMap* avg_vnmap);
+
     ~DrawingGlobal();
 
     void set_window_width_height(GLfloat window_width,GLfloat window_height);
@@ -71,7 +73,10 @@ private:
     GLfloat ambient[4];
 
     bool initialized;
-        
+    
+    VertexNormal::VertNormalMap* avg_vnmap;
+    VertexNormal::VertNormalMap* original_avg_vnmap;
+    
 };
 
 #endif

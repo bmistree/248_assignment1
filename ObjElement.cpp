@@ -250,18 +250,16 @@ static void b_normalize(OpenVolumeMesh::Geometry::Vec3f& normal)
 }
 
 
-void VertexNormal::calculate_normals(
+void VertexNormal::calculate_average_normals(
     VertNormalMap& vnmap,
     OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh)
 {
     // for each vertex, run through all the faces its a part of.  Calculate
-    
     for (OpenVolumeMesh::VertexIter viter = obj_mesh->vertices_begin();
          viter != obj_mesh->vertices_end(); ++viter)
     {
         OpenVolumeMesh::VertexHandle vhandle = *viter;
 
-        
         // get all edges associated with vertex handle and put neighbors into
         // neighbor_handles
         std::vector<OpenVolumeMesh::VertexHandle> neighbor_handles;

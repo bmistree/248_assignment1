@@ -52,15 +52,17 @@ int main(int argc, char** argv)
     OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh =
         ObjReader::read_object_file(
             filename,*obj_tc_map,*open_tc_map,*obj_vnmap,*open_vnmap,*vmap);
-    
+
+
+    VertexNormal::VertNormalMap* avg_vnmap = NULL;
     if (open_vnmap->size() == 0)
     {
-        std::cout<<"\n\nMust calculate own normals\n";
-        assert(false);
-        //VertexNormal::calculate_normals(*open_vnmap,obj_mesh);
+        avg_vnmap = new VertexNormal::VertNormalMap;
+        VertexNormal::calculate_average_normals(*avg_vnmap,obj_mesh);
     }
+
     
-    drawing_global = new DrawingGlobal(obj_mesh,open_tc_map,open_vnmap,vmap,bm);
+    drawing_global = new DrawingGlobal(obj_mesh,open_tc_map,open_vnmap,vmap,bm,avg_vnmap);
     setup_gl(filename,argc,argv,drawing_global);
 
     glutMainLoop();

@@ -35,15 +35,15 @@ static void makeCheckImage(void)
     }
 }
 
-
-
 DrawingGlobal::DrawingGlobal(
     OpenVolumeMesh::GeometricPolyhedralMeshV4f* _obj_mesh,
     TextureCoordinate::FaceTextureCoordinateMap* _tc_map,
-    VertexNormal::FaceVertNormalMap* _vnmap, Vertex::VertexMap* _vmap, Bitmap* _bm)
+    VertexNormal::FaceVertNormalMap* _vnmap, Vertex::VertexMap* _vmap, Bitmap* _bm,
+    VertexNormal::VertNormalMap* _avg_vnmap)
  : obj_mesh(_obj_mesh), tc_map(_tc_map),vnmap(_vnmap),vmap(_vmap),
    original_obj_mesh(_obj_mesh), original_vnmap(_vnmap),original_vmap(_vmap),
-   bm(_bm),shading(GL_FLAT),gl_begin_type(GL_TRIANGLES)
+   bm(_bm),shading(GL_FLAT),gl_begin_type(GL_TRIANGLES), avg_vnmap(_avg_vnmap),
+   original_avg_vnmap(_avg_vnmap)
 {
     diffuse[0] = 1.0;
     diffuse[1] = 1.0;
@@ -71,24 +71,6 @@ DrawingGlobal::DrawingGlobal(
     eye_direction_delta.z = - 1.0f;
 
     angle = 0;
-
-
-    // if (bm != NULL)
-    // {
-    //     makeCheckImage();
-        
-    //     glGenTextures(1, &texture_id);
-
-    //     glBindTexture(GL_TEXTURE_2D, texture_id);
-
-    //     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
-    //     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
-    //     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
-    //     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
-
-    //     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 64,64,0,
-    //         GL_RGBA, GL_UNSIGNED_BYTE, checkImage);
-    // }
     initialized = false;
 }
 
@@ -98,22 +80,6 @@ void DrawingGlobal::initialize()
         return;
 
     initialized = true;
-    // if (bm != NULL)
-    // {
-    //     glGenTextures(1, &texture_id);
-    //     glBindTexture(GL_TEXTURE_2D, texture_id);
-    //     float pixels[] = {
-    //         0.0f, 0.0f, 0.0f,   1.0f, 1.0f, 1.0f,
-    //         1.0f, 1.0f, 1.0f,   0.0f, 0.0f, 0.0f
-    //     };
-    //    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, 
-    //        GL_NEAREST);
-    //    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, 
-    //        GL_NEAREST);
-        
-    //     glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB, 2, 2, 0, GL_RGB, GL_FLOAT, pixels );
-    // }
-
     if (bm != NULL)
     {
         glGenTextures(1, &texture_id);
@@ -180,19 +146,19 @@ void DrawingGlobal::keyboard_func(unsigned char key,int x, int y)
     else if (key == '4')
         gl_begin_type = GL_TRIANGLES;
 
-    // else if (key == '+')
-    // {
-    //     vnmap = new VertexNormal::VertNormalMap;
-    //     obj_mesh = Subdivider::subdivide(obj_mesh);
-    //     VertexNormal::calculate_normals(*vnmap,obj_mesh);
-    // }
-    // else if (key == '0')
-    // {
-    //     obj_mesh = original_obj_mesh;
-    //     vnmap = original_vnmap;
-    //     vmap = original_vmap;
-    // }
-    
+    else if (key == '+')
+    {
+        avg_vnmap = new VertexNormal::VertNormalMap;
+        obj_mesh = Subdivider::subdivide(obj_mesh);
+        VertexNormal::calculate_average_normals(*avg_vnmap,obj_mesh);
+    }
+    else if (key == '0')
+    {
+        obj_mesh = original_obj_mesh;
+        vnmap = original_vnmap;
+        vmap = original_vmap;
+        avg_vnmap = original_avg_vnmap;
+    }
     glutPostRedisplay();    
 }
 
@@ -202,7 +168,6 @@ void DrawingGlobal::draw_global_coords()
 {
     // hard code the position of the spotlight 5 units above the origin with a
     // 30 degree cutoff.
-    //GLfloat light_pos[4] = {0.f,5.f,0.f,.5f};
     GLfloat light_pos[4] = {0.f,30.f,0.f,.5f};
     GLfloat light_dir[3] = {0.f,-1.f,0.f};
     GLfloat light_ambient[4] = {.3,.3,.3,1.0f};
@@ -264,85 +229,6 @@ void DrawingGlobal::draw_global_coords()
         }
     }
 }
-
-// void DrawingGlobal::render_frame()
-// {
-//     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
-//     glEnable(GL_DEPTH_TEST);
-//     glShadeModel(GL_FLAT);
-
-//     initialize();
-    
-//     glEnable(GL_TEXTURE_2D);
-//     glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_REPLACE);
-//     glBindTexture(GL_TEXTURE_2D,texture_id);
-//     glColor3f(.5,0,0);
-//     float y_pos = -10.f;    
-//     float left_side = -20.f;
-//     int num_tessels = 200;
-//     float dim_tessel = fabs(left_side)*2./num_tessels;
-
-//     glMatrixMode(GL_PROJECTION);
-//     glLoadIdentity();
-//     gluPerspective(
-//         PERSPECTIVE_NEAR_PLANE_ANGLE,  // angle to top from center
-//         (window_width) / (window_height), //aspect ratio
-//         .01f, // dist to near clip plane
-//         100.f // dist to far clip plane
-//     );
-
-//     glMatrixMode(GL_MODELVIEW);
-//     glLoadIdentity();
-
-//     gluLookAt(
-//         // eye positioning
-//         eye.x,eye.y,eye.z,
-//         eye.x + eye_direction_delta.x, eye.y + eye_direction_delta.y,
-//         eye.z + eye_direction_delta.z,
-//         // camera is oriented so that it's top is in the y direction
-//         0.f,1.f,0.f);
-
-    
-//     for (int i = 0; i < num_tessels; ++i)
-//     {
-//         for (int j = 0; j < num_tessels; ++j)
-//         {
-//             glBegin(GL_QUADS);
-//             glNormal3f(0,.707,-.707);
-
-//             glTexCoord2f(0,0);
-//             glVertex3f(
-//                 left_side + i* dim_tessel,
-//                 y_pos,
-//                 left_side + j*dim_tessel);
-
-//             glTexCoord2f(0,1);
-//             glVertex3f(
-//                 left_side + i*dim_tessel,
-//                 y_pos,
-//                 left_side + (j+1)*dim_tessel);
-
-//             glTexCoord2f(1,1);
-//             glVertex3f(
-//                 left_side + (i+1)*dim_tessel,
-//                 y_pos,
-//                 left_side + (j+1)*dim_tessel);
-
-//             glTexCoord2f(1,0);
-//             glVertex3f(
-//                 left_side + (i+1)*dim_tessel,
-//                 y_pos,
-//                 left_side + j*dim_tessel);
-
-//             glEnd();
-//         }
-//     }
-
-//     glutSwapBuffers();
-//     glFlush();
-//     glBindTexture(GL_TEXTURE_2D,0);
-//     glDisable(GL_TEXTURE_2D);
-// }
 
 
 void DrawingGlobal::render_frame()
@@ -425,11 +311,17 @@ void DrawingGlobal::render_frame()
                 TextureCoordinate* tc = (*tc_map)[face_handle][from_vertex];
                 std::pair<float,float> p (tc->get_u(),tc->get_v());
                 texture_coords.push_back(p);
+
+                VertexNormal* vn = (*vnmap)[face_handle][from_vertex];
+                vertex_normals.push_back(vn->open_vec3());
+                vertex_normal += vn->open_vec3();
             }
-            
-            VertexNormal* vn = (*vnmap)[face_handle][from_vertex];
-            vertex_normals.push_back(vn->open_vec3());
-            vertex_normal += vn->open_vec3();
+            else
+            {
+                VertexNormal* vn = (*avg_vnmap)[from_vertex];
+                vertex_normals.push_back(vn->open_vec3());
+                vertex_normal += vn->open_vec3();
+            }
         }
 
         if (shading == GL_FLAT)

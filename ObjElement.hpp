@@ -75,8 +75,6 @@ private:
     TextureCoordId tid;
 };
 
-
-
 class VertexNormal : public ObjElement
 {
 public:
@@ -96,7 +94,7 @@ public:
     static bool construct_from_line(
         VertNormalMap& vnmap,std::string line);
 
-    static void calculate_normals(VertNormalMap& vnmap,
+    static void calculate_average_normals(VertNormalMap& vnmap,
         OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh);
 
     OpenVolumeMesh::Geometry::Vec3f open_vec3() const
