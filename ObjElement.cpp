@@ -205,15 +205,6 @@ OpenVolumeMesh::FaceHandle Face::construct_from_line(
                 to_search_from = matches[3].second;
             }
         }
-
-
-        // // only add face if the vertices are unique;
-        // if (is_empty(vertices[0],vertices[1],obj_mesh) ||
-        //     is_empty(vertices[0],vertices[2],obj_mesh) ||
-        //     is_empty(vertices[1],vertices[2],obj_mesh))
-        // {
-        //     return true;
-        // }
         
         OpenVolumeMesh::FaceHandle ovm_id = obj_mesh->add_face(vertices);
         if (had_normal)
