@@ -194,8 +194,8 @@ void DrawingGlobal::draw_global_coords()
     // draw ground plane before lookat
     glColor3f(.7f,0.f,0.f);
     // float y_pos = -4.f;
-    float y_pos = -10.f;    
-    float left_side = -20.f;
+    float y_pos = -20.f;    
+    float left_side = -80.f;
     int num_tessels = 200;
     float dim_tessel = fabs(left_side)*2./num_tessels;
     for (int i = 0; i < num_tessels; ++i)
