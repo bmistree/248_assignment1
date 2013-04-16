@@ -9,12 +9,32 @@
 #include "Subdivider.hpp"
 
 
+static GLubyte checkImage[64][64][4];
+
 static void b_normalize(OpenVolumeMesh::Geometry::Vec3f& normal)
 {
     float len = sqrt(normal[0]*normal[0] + normal[1]*normal[1] + normal[2]*normal[2]);
     float mult = 1./len;
     normal = mult * normal;
 }
+
+
+static void makeCheckImage(void)
+{
+    int i, j, c;
+    for (i = 0; i < 64; ++i)
+    {
+        for (j=0; j < 64; ++j)
+        {
+            c = (((i&0x8)==0)^((j&0x8))==0)*255;
+            checkImage[i][j][0] = (GLubyte)c;
+            checkImage[i][j][1] = (GLubyte)c;
+            checkImage[i][j][2] = (GLubyte)c;
+            checkImage[i][j][3] = (GLubyte)255;
+        }
+    }
+}
+
 
 
 DrawingGlobal::DrawingGlobal(
@@ -52,17 +72,39 @@ DrawingGlobal::DrawingGlobal(
 
     angle = 0;
 
+
+    // if (bm != NULL)
+    // {
+    //     makeCheckImage();
+        
+    //     glGenTextures(1, &texture_id);
+
+    //     glBindTexture(GL_TEXTURE_2D, texture_id);
+
+    //     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
+    //     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
+    //     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+    //     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+
+    //     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 64,64,0,
+    //         GL_RGBA, GL_UNSIGNED_BYTE, checkImage);
+    // }
+    initialized = false;
+}
+
+void DrawingGlobal::initialize()
+{
+    if (initialized)
+        return;
+
+    initialized = true;
     if (bm != NULL)
     {
         glGenTextures(1, &texture_id);
-
-	glBindTexture(GL_TEXTURE_2D, texture_id);
-	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
-	glTexImage2D(GL_TEXTURE_2D, 0, 3, bm->width, bm->height, 0,
+        glBindTexture(GL_TEXTURE_2D, texture_id);
+        glTexImage2D(GL_TEXTURE_2D, 0, 3, bm->width, bm->height, 0,
             GL_RGB, GL_UNSIGNED_BYTE, bm->data);
     }
-    
 }
 
 void DrawingGlobal::set_window_width_height(
@@ -157,10 +199,8 @@ void DrawingGlobal::draw_global_coords()
     glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);
 
-    
     glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
     glEnable(GL_COLOR_MATERIAL);
-    glDisable(GL_CULL_FACE);
     
 
     // draw ground plane before lookat
@@ -176,165 +216,204 @@ void DrawingGlobal::draw_global_coords()
         {
             glBegin(GL_QUADS);
             glNormal3f(0,.707,-.707);
+
+            glTexCoord2f(0,0);
             glVertex3f(
                 left_side + i* dim_tessel,
                 y_pos,
                 left_side + j*dim_tessel);
-            
+
+            glTexCoord2f(0,1);
             glVertex3f(
                 left_side + i*dim_tessel,
                 y_pos,
                 left_side + (j+1)*dim_tessel);
 
-            
+            glTexCoord2f(1,1);
             glVertex3f(
                 left_side + (i+1)*dim_tessel,
                 y_pos,
                 left_side + (j+1)*dim_tessel);
 
+            glTexCoord2f(1,0);
             glVertex3f(
                 left_side + (i+1)*dim_tessel,
                 y_pos,
                 left_side + j*dim_tessel);
-
 
             glEnd();
         }
     }
 }
 
-void DrawingGlobal::render_frame()
-{
-    glDisable(GL_CULL_FACE);
-    if (bm != NULL)
-        glEnable(GL_TEXTURE_2D);
+
+// void DrawingGlobal::render_frame()
+// {
+//     std::cout<<"\n\nRender frame\n\n";
+//     std::cout.flush();
+//     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+//     glEnable(GL_TEXTURE_2D);
+//     glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_REPLACE);
+//     glBindTexture(GL_TEXTURE_2D,texture_id);
+//     glBegin(GL_QUADS);
+//     glTexCoord2f(0,0); glVertex3f(-2,-1,0);
+//     glTexCoord2f(0,1); glVertex3f(-2,1,0);
+//     glTexCoord2f(1,1); glVertex3f(0,1,0);
+//     glTexCoord2f(1,0); glVertex3f(0,-1,0);
+
+//     glTexCoord2f(0,0); glVertex3f(1,-1,0);
+//     glTexCoord2f(0,1); glVertex3f(1,1,0);
+//     glTexCoord2f(1,1); glVertex3f(1,1,0);
+//     glTexCoord2f(1,1); glVertex3f(2.414,1,-1.4);
+//     glTexCoord2f(1,0); glVertex3f(2.4,-1,-1.4);
+//     glEnd();
+//     glFlush();
+//     glDisable(GL_TEXTURE_2D);
+    
+// }
 
 
-    glEnable(GL_DEPTH_TEST);
-    glShadeModel(shading);
-    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diffuse);
-    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specular);
-    glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, shininess);
-    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, ambient);
+// void DrawingGlobal::render_frame()
+// {
+//     initialize();
+    
+//     glDisable(GL_CULL_FACE);
+//     glEnable(GL_DEPTH_TEST);
+//     glShadeModel(shading);
+//     glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diffuse);
+//     glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specular);
+//     glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, shininess);
+//     glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, ambient);
 
     
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glPushMatrix();
-    glLoadIdentity();
+//     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluPerspective(
-        PERSPECTIVE_NEAR_PLANE_ANGLE,  // angle to top from center
-        (window_width) / (window_height), //aspect ratio
-        .01f, // dist to near clip plane
-        100.f // dist to far clip plane
-    );
+//     glPushMatrix();
+//     glLoadIdentity();
 
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
+    
+//     glMatrixMode(GL_PROJECTION);
+//     glLoadIdentity();
+//     gluPerspective(
+//         PERSPECTIVE_NEAR_PLANE_ANGLE,  // angle to top from center
+//         (window_width) / (window_height), //aspect ratio
+//         .01f, // dist to near clip plane
+//         100.f // dist to far clip plane
+//     );
 
+//     glMatrixMode(GL_MODELVIEW);
+//     glLoadIdentity();
+
+//     gluLookAt(
+//         // eye positioning
+//         eye.x,eye.y,eye.z,
+//         eye.x + eye_direction_delta.x, eye.y + eye_direction_delta.y,
+//         eye.z + eye_direction_delta.z,
+//         // camera is oriented so that it's top is in the y direction
+//         0.f,1.f,0.f);
+
+//     glDisable(GL_CULL_FACE);
+//     draw_global_coords();
+//     if (bm != NULL)
+//     {
+//         glColor4f(1,1,1,.5);
+//         glEnable(GL_TEXTURE_2D);
+//         glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_REPLACE);
+//         glBindTexture(GL_TEXTURE_2D, texture_id);
+//     }
+
+    
+//     for (OpenVolumeMesh::FaceIter iter = obj_mesh->faces_begin();
+//          iter != obj_mesh->faces_end(); ++iter)
+//     {
+//         glBegin(gl_begin_type);
         
-    gluLookAt(
-        // eye positioning
-        eye.x,eye.y,eye.z,
-        eye.x + eye_direction_delta.x, eye.y + eye_direction_delta.y,
-        eye.z + eye_direction_delta.z,
-        // camera is oriented so that it's top is in the y direction
-        0.f,1.f,0.f);
+//         const OpenVolumeMesh::OpenVolumeMeshFace& face = obj_mesh->face(*iter);
+//         const std::vector<OpenVolumeMesh::HalfEdgeHandle>& half_edge_handles = face.halfedges();
 
-    glDisable(GL_CULL_FACE);
-    draw_global_coords();
+//         // calculate the face normal as average of vertex normal and draw points.
+//         std::vector<OpenVolumeMesh::Geometry::Vec4f> vertex_points;
+//         std::vector<OpenVolumeMesh::Geometry::Vec3f> vertex_normals;
+//         std::vector<std::pair<float,float> > texture_coords;
 
-    for (OpenVolumeMesh::FaceIter iter = obj_mesh->faces_begin();
-         iter != obj_mesh->faces_end(); ++iter)
-    {
-        glBegin(gl_begin_type);
-        
-        const OpenVolumeMesh::OpenVolumeMeshFace& face = obj_mesh->face(*iter);
-        const std::vector<OpenVolumeMesh::HalfEdgeHandle>& half_edge_handles = face.halfedges();
+//         OpenVolumeMesh::Geometry::Vec3f vertex_normal(0,0,0);
+//         for (std::vector<OpenVolumeMesh::HalfEdgeHandle>::const_iterator he_iter = half_edge_handles.begin();
+//              he_iter != half_edge_handles.end(); ++he_iter)
+//         {
+//             const OpenVolumeMesh::OpenVolumeMeshEdge& edge = obj_mesh->halfedge(*he_iter);
+//             const OpenVolumeMesh::VertexHandle& from_vertex = edge.from_vertex();
+//             const OpenVolumeMesh::Geometry::Vec4f& vertex_vec = obj_mesh->vertex(from_vertex);
 
-        // calculate the face normal as average of vertex normal and draw points.
-        std::vector<OpenVolumeMesh::Geometry::Vec4f> vertex_points;
-        std::vector<OpenVolumeMesh::Geometry::Vec3f> vertex_normals;
-        std::vector<std::pair<float,float> > texture_coords;
+//             vertex_points.push_back(vertex_vec);
 
-        OpenVolumeMesh::Geometry::Vec3f vertex_normal(0,0,0);
-        for (std::vector<OpenVolumeMesh::HalfEdgeHandle>::const_iterator he_iter = half_edge_handles.begin();
-             he_iter != half_edge_handles.end(); ++he_iter)
-        {
-            const OpenVolumeMesh::OpenVolumeMeshEdge& edge = obj_mesh->halfedge(*he_iter);
-            const OpenVolumeMesh::VertexHandle& from_vertex = edge.from_vertex();
-            const OpenVolumeMesh::Geometry::Vec4f& vertex_vec = obj_mesh->vertex(from_vertex);
+//             if (vnmap->find(from_vertex) == vnmap->end())
+//                 assert(false);
 
-            vertex_points.push_back(vertex_vec);
-
-            if (vnmap->find(from_vertex) == vnmap->end())
-                assert(false);
-
-            if (bm != NULL)
-            {
-                TextureCoordinate* tc = (*tc_map)[from_vertex];
-                std::pair<float,float> p (tc->get_u(),tc->get_v());
-                texture_coords.push_back(p);
-            }
+//             if (bm != NULL)
+//             {
+//                 TextureCoordinate* tc = (*tc_map)[from_vertex];
+//                 std::pair<float,float> p (tc->get_u(),tc->get_v());
+//                 texture_coords.push_back(p);
+//             }
             
-            VertexNormal* vn = (*vnmap)[from_vertex];
-            vertex_normals.push_back(vn->open_vec3());
-            vertex_normal += vn->open_vec3();
-        }
+//             VertexNormal* vn = (*vnmap)[from_vertex];
+//             vertex_normals.push_back(vn->open_vec3());
+//             vertex_normal += vn->open_vec3();
+//         }
 
-        if (shading == GL_FLAT)
-        {
-            OpenVolumeMesh::Geometry::Vec3f vec0(
-                vertex_points[0][0],vertex_points[0][1],vertex_points[0][2]);
-            OpenVolumeMesh::Geometry::Vec3f vec1(
-                vertex_points[1][0],vertex_points[1][1],vertex_points[1][2]);
-            OpenVolumeMesh::Geometry::Vec3f vec2(
-                vertex_points[2][0],vertex_points[2][1],vertex_points[2][2]);
+//         if (shading == GL_FLAT)
+//         {
+//             OpenVolumeMesh::Geometry::Vec3f vec0(
+//                 vertex_points[0][0],vertex_points[0][1],vertex_points[0][2]);
+//             OpenVolumeMesh::Geometry::Vec3f vec1(
+//                 vertex_points[1][0],vertex_points[1][1],vertex_points[1][2]);
+//             OpenVolumeMesh::Geometry::Vec3f vec2(
+//                 vertex_points[2][0],vertex_points[2][1],vertex_points[2][2]);
             
-            OpenVolumeMesh::Geometry::Vec3f dir =(vec1 - vec0) % (vec2 - vec0);
-            b_normalize(dir);
-            glNormal3f(dir[0],dir[1],dir[2]);
-        }        
+//             OpenVolumeMesh::Geometry::Vec3f dir =(vec1 - vec0) % (vec2 - vec0);
+//             b_normalize(dir);
+//             glNormal3f(dir[0],dir[1],dir[2]);
+//         }        
 
-        // actually draw the points
-        uint64_t counter = 0;
-        for (std::vector<OpenVolumeMesh::Geometry::Vec4f>::const_iterator citer = vertex_points.begin();
-             citer != vertex_points.end(); ++citer)
-        {
-            if (shading == GL_SMOOTH)
-            {
-                OpenVolumeMesh::Geometry::Vec3f smooth_normal = vertex_normals[counter];
-                b_normalize(smooth_normal);
-                glNormal3f(
-                    smooth_normal[0],
-                    smooth_normal[1],
-                    smooth_normal[2]);
-            }
+//         // actually draw the points
+//         uint64_t counter = 0;
+//         for (std::vector<OpenVolumeMesh::Geometry::Vec4f>::const_iterator citer = vertex_points.begin();
+//              citer != vertex_points.end(); ++citer)
+//         {
+//             if (shading == GL_SMOOTH)
+//             {
+//                 OpenVolumeMesh::Geometry::Vec3f smooth_normal = vertex_normals[counter];
+//                 b_normalize(smooth_normal);
+//                 glNormal3f(
+//                     smooth_normal[0],
+//                     smooth_normal[1],
+//                     smooth_normal[2]);
+//             }
 
-            if (counter < texture_coords.size())
-            {
-                std::pair<float,float> p = texture_coords[counter];
-                glTexCoord2f(p.first,p.second);
-            }
+//             if (counter < texture_coords.size())
+//             {
+//                 std::pair<float,float> p = texture_coords[counter];
+//                 glTexCoord2f(p.first,p.second);
+//             }
 
-            glVertex4f(
-                (GLfloat)((*citer)[0]),
-                (GLfloat)((*citer)[1]),
-                (GLfloat)((*citer)[2]),
-                (GLfloat)((*citer)[3]));
+//             glVertex3f(
+//                 (GLfloat)((*citer)[0]),
+//                 (GLfloat)((*citer)[1]),
+//                 (GLfloat)((*citer)[2]));
+//             ++counter;
+//         }
+//         glEnd();
+//     }
 
-            ++counter;
-        }
-        glEnd();
-    }
+//     glutSwapBuffers();
+//     glPopMatrix();
+//     glFlush();
 
-
-    glutSwapBuffers();
-    glPopMatrix();
-    glFlush();
+//     if (bm != NULL)
+//         glBindTexture(GL_TEXTURE_2D, 0);
     
-}
+//     glDisable(GL_TEXTURE_2D);
+    
+// }
 

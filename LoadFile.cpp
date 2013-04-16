@@ -78,6 +78,9 @@ void setup_gl(const std::string &filename, int argc, char** argv,DrawingGlobal* 
 
     glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
     glClearColor(0.0f,0.0f,.7f,1.0f);
+    glShadeModel(GL_FLAT);
+    glEnable(GL_DEPTH_TEST);
+    
     glViewport(0,0,WINDOW_WIDTH,WINDOW_HEIGHT);
     dg->set_window_width_height(WINDOW_WIDTH,WINDOW_HEIGHT);
 

@@ -11,7 +11,6 @@
 #define PERSPECTIVE_NEAR_PLANE_ANGLE 60.f
 #define INITIAL_EYE_X 0.f
 #define INITIAL_EYE_Y 0.f
-// #define INITIAL_EYE_Z 7.5f
 #define INITIAL_EYE_Z 0.f
 
 #define INCREMENT_POS_ON_KEY .1f
@@ -49,6 +48,8 @@ private:
     TextureCoordinate::TextureCoordinateMap* oringal_tc_map;
     VertexNormal::VertNormalMap* original_vnmap;
     Vertex::VertexMap* original_vmap;
+
+    void initialize();
     
     Point4 eye;
     Point4 eye_direction_delta;
@@ -66,6 +67,8 @@ private:
     GLfloat specular[4];
     GLfloat shininess[1];
     GLfloat ambient[4];
+
+    bool initialized;
         
 };
 
