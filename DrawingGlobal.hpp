@@ -72,6 +72,12 @@ private:
     GLfloat shininess[1];
     GLfloat ambient[4];
 
+    GLfloat mat_diffuse [4];
+    GLfloat mat_specular[4];
+    GLfloat mat_shininess[1];
+    GLfloat mat_ambient[4];
+
+    
     bool initialized;
     
     VertexNormal::VertNormalMap* avg_vnmap;

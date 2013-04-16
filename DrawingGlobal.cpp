@@ -62,6 +62,7 @@ DrawingGlobal::DrawingGlobal(
     ambient[2] = .1;
     ambient[3] = 1.0;
 
+    
     eye.x = INITIAL_EYE_X;
     eye.y = INITIAL_EYE_Y;
     eye.z = INITIAL_EYE_Z;
@@ -145,7 +146,34 @@ void DrawingGlobal::keyboard_func(unsigned char key,int x, int y)
         gl_begin_type = GL_LINE_LOOP;
     else if (key == '4')
         gl_begin_type = GL_TRIANGLES;
-
+    else if (key == ',')
+        shininess[0] += 10;
+    else if (key == '.')
+        shininess[0] -= 10;
+    else if (key == 'g')
+    {
+        diffuse[0] += .1;
+        diffuse[1] += .1;
+        diffuse[2] += .1;
+    }
+    else if (key == 'h')
+    {
+        diffuse[0] -= .1;
+        diffuse[1] -= .1;
+        diffuse[2] -= .1;
+    }
+    else if (key == 'v')
+    {
+        specular[0] += .1;
+        specular[1] += .1;
+        specular[2] += .1;
+    }
+    else if (key == 'b')
+    {
+        specular[0] -= .1;
+        specular[1] -= .1;
+        specular[2] -= .1;
+    }
     else if (key == '+')
     {
         avg_vnmap = new VertexNormal::VertNormalMap;
@@ -187,7 +215,8 @@ void DrawingGlobal::draw_global_coords()
     glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);
 
-    glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+    //glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+    glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT);
     glEnable(GL_COLOR_MATERIAL);
     
 
@@ -238,13 +267,12 @@ void DrawingGlobal::render_frame()
     glDisable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
     glShadeModel(shading);
-    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diffuse);
-    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specular);
-    glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, shininess);
-    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, ambient);
-
     
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diffuse);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specular);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS,shininess);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, ambient);
 
     
     glPushMatrix();
@@ -271,7 +299,7 @@ void DrawingGlobal::render_frame()
         // camera is oriented so that it's top is in the y direction
         0.f,1.f,0.f);
 
-    glDisable(GL_CULL_FACE);
+    
     draw_global_coords();
     if (bm != NULL)
     {
@@ -280,7 +308,7 @@ void DrawingGlobal::render_frame()
         glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_REPLACE);
         glBindTexture(GL_TEXTURE_2D, texture_id);
     }
-
+    
     
     for (OpenVolumeMesh::FaceIter iter = obj_mesh->faces_begin();
          iter != obj_mesh->faces_end(); ++iter)
