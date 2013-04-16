@@ -207,13 +207,13 @@ OpenVolumeMesh::FaceHandle Face::construct_from_line(
         }
 
 
-        // only add face if the vertices are unique;
-        if (is_empty(vertices[0],vertices[1],obj_mesh) ||
-            is_empty(vertices[0],vertices[2],obj_mesh) ||
-            is_empty(vertices[1],vertices[2],obj_mesh))
-        {
-            return true;
-        }
+        // // only add face if the vertices are unique;
+        // if (is_empty(vertices[0],vertices[1],obj_mesh) ||
+        //     is_empty(vertices[0],vertices[2],obj_mesh) ||
+        //     is_empty(vertices[1],vertices[2],obj_mesh))
+        // {
+        //     return true;
+        // }
         
         OpenVolumeMesh::FaceHandle ovm_id = obj_mesh->add_face(vertices);
         if (had_normal)
@@ -264,13 +264,6 @@ void VertexNormal::calculate_normals(
     {
         OpenVolumeMesh::VertexHandle vhandle = *viter;
 
-        
-        if (vhandle == 14)
-        {
-            std::cout<<"\nFound\n";
-        }
-
-        
         
         // get all edges associated with vertex handle and put neighbors into
         // neighbor_handles
@@ -363,12 +356,6 @@ OpenVolumeMesh::Geometry::Vec3f VertexNormal::calc_normal(
     if (len == 0)
     {
         valid = false;
-        std::cout<<"\n";
-        std::cout<<vec2 - vec0;
-        std::cout<<"\n";
-        std::cout<<vec1 - vec0;
-        std::cout<<"\n";
-        
         // handles case of degnerate triangle.
         // dir[0] = 0;
         // dir[1] = 0;
