@@ -111,7 +111,7 @@ private:
     static OpenVolumeMesh::Geometry::Vec3f calc_normal(
         OpenVolumeMesh::VertexHandle vhandle0, OpenVolumeMesh::VertexHandle vhandle1,
         OpenVolumeMesh::VertexHandle vhandle2,
-        OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh);
+        OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh, bool& valid);
     
     Point4 vn;
     VertexNormalId vnid;

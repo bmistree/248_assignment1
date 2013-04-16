@@ -131,6 +131,15 @@ bool TextureCoordinate::construct_from_line(
 
 
 /************* FACE *************/
+
+bool is_empty(OpenVolumeMesh::VertexHandle& a, OpenVolumeMesh::VertexHandle& b,
+    OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh)
+{
+    OpenVolumeMesh::Geometry::Vec4f c = obj_mesh->vertex(a) - obj_mesh->vertex(b);
+    return (c[0] == 0) && (c[1] == 0) && (c[2] == 0);
+}
+
+
 OpenVolumeMesh::FaceHandle Face::construct_from_line(
     OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh,
     TextureCoordinate::TextureCoordinateMap& obj_tc_map,
@@ -196,6 +205,16 @@ OpenVolumeMesh::FaceHandle Face::construct_from_line(
                 to_search_from = matches[3].second;
             }
         }
+
+
+        // only add face if the vertices are unique;
+        if (is_empty(vertices[0],vertices[1],obj_mesh) ||
+            is_empty(vertices[0],vertices[2],obj_mesh) ||
+            is_empty(vertices[1],vertices[2],obj_mesh))
+        {
+            return true;
+        }
+        
         OpenVolumeMesh::FaceHandle ovm_id = obj_mesh->add_face(vertices);
         if (had_normal)
         {
@@ -226,6 +245,14 @@ VertexNormal::VertexNormal(const GLfloat &x, const GLfloat& y, const GLfloat&z)
     vnid = _vnid;
 }
 
+static void b_normalize(OpenVolumeMesh::Geometry::Vec3f& normal)
+{
+    float len = sqrt(normal[0]*normal[0] + normal[1]*normal[1] + normal[2]*normal[2]);
+    float mult = 1./len;
+    normal = mult * normal;
+}
+
+
 void VertexNormal::calculate_normals(
     VertNormalMap& vnmap,
     OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh)
@@ -237,13 +264,21 @@ void VertexNormal::calculate_normals(
     {
         OpenVolumeMesh::VertexHandle vhandle = *viter;
 
+        
+        if (vhandle == 14)
+        {
+            std::cout<<"\nFound\n";
+        }
+
+        
+        
         // get all edges associated with vertex handle and put neighbors into
         // neighbor_handles
         std::vector<OpenVolumeMesh::VertexHandle> neighbor_handles;
         for(OpenVolumeMesh::VertexOHalfEdgeIter vohiter = obj_mesh->voh_iter(vhandle);
             vohiter.valid(); ++vohiter)
-        {
-            OpenVolumeMesh::HalfEdgeHandle heh = *vohiter;
+        {            
+            OpenVolumeMesh::HalfEdgeHandle heh = *vohiter;            
             const OpenVolumeMesh::OpenVolumeMeshEdge& edge = obj_mesh->halfedge(heh);
             const OpenVolumeMesh::VertexHandle& from_vertex = edge.from_vertex();
             const OpenVolumeMesh::VertexHandle& to_vertex = edge.to_vertex();
@@ -259,14 +294,20 @@ void VertexNormal::calculate_normals(
         
         OpenVolumeMesh::VertexHandle current_handle;
         OpenVolumeMesh::VertexHandle next_handle;
+        int num_valid = 0;
         for (uint64_t i = 0; i < neighbor_handles.size() - 1; ++i)
         {
             current_handle = neighbor_handles[i];
             next_handle = neighbor_handles[i+1];
-
+            bool valid;
             OpenVolumeMesh::Geometry::Vec3f inter =
-                calc_normal(vhandle,current_handle,next_handle,obj_mesh);
-            average_normal += inter;
+                calc_normal(vhandle,current_handle,next_handle,obj_mesh,valid);
+            
+            if (valid)
+            {
+                ++num_valid;
+                average_normal += inter;
+            }
         }
 
         // current_handle = neighbor_handles[neighbor_handles.size() -1];
@@ -275,12 +316,22 @@ void VertexNormal::calculate_normals(
 
         next_handle = neighbor_handles[neighbor_handles.size() -1];
         current_handle = neighbor_handles[0];
-        average_normal += calc_normal(vhandle,current_handle,next_handle,obj_mesh);
+        bool valid;
+        OpenVolumeMesh::Geometry::Vec3f inter=
+            calc_normal(vhandle,current_handle,next_handle,obj_mesh,valid);
+        if (valid)
+        {
+            average_normal += inter;
+            ++num_valid;
+        }
 
         
-        float num_normals = neighbor_handles.size() -1;
+        // float num_normals = neighbor_handles.size() -1;
+        // average_normal *= (1./num_normals);
+        float num_normals = (float)num_valid;
         average_normal *= (1./num_normals);
-
+        b_normalize(average_normal);
+        
         VertexNormal* vn = new VertexNormal(
             average_normal[0],average_normal[1],average_normal[2]);
         vnmap[vhandle] = vn;
@@ -290,7 +341,7 @@ void VertexNormal::calculate_normals(
 OpenVolumeMesh::Geometry::Vec3f VertexNormal::calc_normal(
     OpenVolumeMesh::VertexHandle vhandle0, OpenVolumeMesh::VertexHandle vhandle1,
     OpenVolumeMesh::VertexHandle vhandle2,
-    OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh)
+    OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh, bool& valid)
 {
     OpenVolumeMesh::Geometry::Vec4f _vec0 = obj_mesh->vertex(vhandle0);
     OpenVolumeMesh::Geometry::Vec4f _vec1 = obj_mesh->vertex(vhandle1);
@@ -305,19 +356,34 @@ OpenVolumeMesh::Geometry::Vec3f VertexNormal::calc_normal(
     //OpenVolumeMesh::Geometry::Vec3f dir = (vec0 - vec1) % (vec2 - vec1);
     //OpenVolumeMesh::Geometry::Vec3f dir = (vec1 - vec0) % (vec2 - vec0);
     OpenVolumeMesh::Geometry::Vec3f dir = (vec2 - vec0) % (vec1 - vec0);
+
     
     float len = sqrt(dir[0]*dir[0] + dir[1]*dir[1] + dir[2]*dir[2]);
-
+    valid = true;
     if (len == 0)
     {
+        valid = false;
+        std::cout<<"\n";
+        std::cout<<vec2 - vec0;
+        std::cout<<"\n";
+        std::cout<<vec1 - vec0;
+        std::cout<<"\n";
+        
         // handles case of degnerate triangle.
-        dir[0] = 0;
+        // dir[0] = 0;
+        // dir[1] = 0;
+        // dir[2] = 1;
+        dir[0] = 1;
         dir[1] = 0;
-        dir[2] = 1;
+        dir[2] = 0;
+        
         return dir;
     }
     
     float normalization = 1./len;
+    OpenVolumeMesh::Geometry::Vec3f normalized = dir*normalization;
+    
+    // std::cout<<"\nThis was normal: "<< normalized;
     return dir*normalization;
 }
 

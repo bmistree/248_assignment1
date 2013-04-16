@@ -136,7 +136,8 @@ void DrawingGlobal::draw_global_coords()
 {
     // hard code the position of the spotlight 5 units above the origin with a
     // 30 degree cutoff.
-    GLfloat light_pos[4] = {0.f,5.f,0.f,.5f};
+    //GLfloat light_pos[4] = {0.f,5.f,0.f,.5f};
+    GLfloat light_pos[4] = {0.f,30.f,0.f,.5f};
     GLfloat light_dir[3] = {0.f,-1.f,0.f};
     GLfloat light_ambient[4] = {.3,.3,.3,1.0f};
     GLfloat diffuse[4] = {1.0f,1.0f,1.0f,1.0f};    
@@ -163,7 +164,8 @@ void DrawingGlobal::draw_global_coords()
 
     // draw ground plane before lookat
     glColor3f(.7f,0.f,0.f);
-    float y_pos = -4.f;
+    // float y_pos = -4.f;
+    float y_pos = -10.f;    
     float left_side = -20.f;
     int num_tessels = 200;
     float dim_tessel = fabs(left_side)*2./num_tessels;
@@ -244,9 +246,6 @@ void DrawingGlobal::render_frame()
     glDisable(GL_CULL_FACE);
     draw_global_coords();
 
-    
-    // if (bm == NULL)
-    //     glColor4f(.5f,.5f,.5f,1.0f);
     for (OpenVolumeMesh::FaceIter iter = obj_mesh->faces_begin();
          iter != obj_mesh->faces_end(); ++iter)
     {
@@ -259,7 +258,6 @@ void DrawingGlobal::render_frame()
         std::vector<OpenVolumeMesh::Geometry::Vec4f> vertex_points;
         std::vector<OpenVolumeMesh::Geometry::Vec3f> vertex_normals;
         std::vector<std::pair<float,float> > texture_coords;
-
 
         OpenVolumeMesh::Geometry::Vec3f vertex_normal(0,0,0);
         for (std::vector<OpenVolumeMesh::HalfEdgeHandle>::const_iterator he_iter = half_edge_handles.begin();
@@ -288,14 +286,16 @@ void DrawingGlobal::render_frame()
 
         if (shading == GL_FLAT)
         {
-            float averager = 1./((float)half_edge_handles.size());
-            vertex_normal *= averager;
-            b_normalize(vertex_normal);
-
-            glNormal3f(
-                vertex_normal[0],
-                vertex_normal[1],
-                vertex_normal[2]);
+            OpenVolumeMesh::Geometry::Vec3f vec0(
+                vertex_points[0][0],vertex_points[0][1],vertex_points[0][2]);
+            OpenVolumeMesh::Geometry::Vec3f vec1(
+                vertex_points[1][0],vertex_points[1][1],vertex_points[1][2]);
+            OpenVolumeMesh::Geometry::Vec3f vec2(
+                vertex_points[2][0],vertex_points[2][1],vertex_points[2][2]);
+            
+            OpenVolumeMesh::Geometry::Vec3f dir =(vec1 - vec0) % (vec2 - vec0);
+            b_normalize(dir);
+            glNormal3f(dir[0],dir[1],dir[2]);
         }        
 
         // actually draw the points
@@ -313,7 +313,6 @@ void DrawingGlobal::render_frame()
                     smooth_normal[2]);
             }
 
-            
             if (counter < texture_coords.size())
             {
                 std::pair<float,float> p = texture_coords[counter];
