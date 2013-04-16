@@ -7,7 +7,7 @@
 #include <iostream>
 #include <OpenVolumeMesh/Mesh/PolyhedralMesh.hh>
 #include "Subdivider.hpp"
-#include "bitmap_image.hpp"
+
 
 static void b_normalize(OpenVolumeMesh::Geometry::Vec3f& normal)
 {
@@ -55,10 +55,11 @@ DrawingGlobal::DrawingGlobal(
     if (bm != NULL)
     {
         glGenTextures(1,&texture_id);
-        glTexImage2D(GL_TEXTURE_2D,0,GL_RGB,
-            bm->width(), bm->height(),0,GL_RGB,
-            GL_UNSIGNED_BYTE,bm->data());
         glBindTexture(GL_TEXTURE_2D,texture_id);
+        glTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE );
+        glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA8,
+            bm->width, bm->height,0,GL_RGBA,
+            GL_UNSIGNED_BYTE,bm->data);
     }
     
 }
@@ -79,7 +80,6 @@ void DrawingGlobal::keyboard_func(unsigned char key,int x, int y)
     //http://www.lighthouse3d.com/tutorials/glut-tutorial/keyboard-example-moving-around-the-world/
     if (key == 'i')
     {
-        //eye.z -= INCREMENT_POS_ON_KEY;
         eye.z += eye_direction_delta.z *INCREMENT_POS_ON_KEY;
         eye.x += eye_direction_delta.x *INCREMENT_POS_ON_KEY;
     }
@@ -87,7 +87,6 @@ void DrawingGlobal::keyboard_func(unsigned char key,int x, int y)
     {
         eye.z -= eye_direction_delta.z *INCREMENT_POS_ON_KEY;
         eye.x -= eye_direction_delta.x *INCREMENT_POS_ON_KEY;
-        //eye.z += INCREMENT_POS_ON_KEY;
     }
     else if (key == 'l')
     {
@@ -150,7 +149,6 @@ void DrawingGlobal::draw_global_coords()
 
     // light1 is an ambient light
     GLfloat ambientlight[ ] = {0.3, 0.3 , 0.3, 1.0};
-    //GLfloat ambientlight[ ] = {0.3, 0.3 , 0.3, 1.0};
     glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambientlight);
 
     // enable a spotlight
@@ -208,7 +206,8 @@ void DrawingGlobal::render_frame()
     if (bm != NULL)
         glEnable(GL_TEXTURE_2D);
 
-    
+
+    glEnable(GL_DEPTH_TEST);
     glShadeModel(shading);
     glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diffuse);
     glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specular);
@@ -220,11 +219,6 @@ void DrawingGlobal::render_frame()
     glPushMatrix();
     glLoadIdentity();
 
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-
-    draw_global_coords();
-    
     
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -248,7 +242,9 @@ void DrawingGlobal::render_frame()
         0.f,1.f,0.f);
 
     glDisable(GL_CULL_FACE);
+    draw_global_coords();
 
+    
     // if (bm == NULL)
     //     glColor4f(.5f,.5f,.5f,1.0f);
     for (OpenVolumeMesh::FaceIter iter = obj_mesh->faces_begin();
@@ -263,7 +259,8 @@ void DrawingGlobal::render_frame()
         std::vector<OpenVolumeMesh::Geometry::Vec4f> vertex_points;
         std::vector<OpenVolumeMesh::Geometry::Vec3f> vertex_normals;
         std::vector<std::pair<float,float> > texture_coords;
-        
+
+
         OpenVolumeMesh::Geometry::Vec3f vertex_normal(0,0,0);
         for (std::vector<OpenVolumeMesh::HalfEdgeHandle>::const_iterator he_iter = half_edge_handles.begin();
              he_iter != half_edge_handles.end(); ++he_iter)

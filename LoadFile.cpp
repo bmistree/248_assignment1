@@ -9,8 +9,9 @@
 #include <GL/gl.h>
 #include "DrawingGlobal.hpp"
 #include "Util.hpp"
-#include "bitmap_image.hpp"
+//#include "bitmap_image.hpp"
 #include "Subdivider.hpp"
+#include "stb_image.h"
 
 #define WINDOW_WIDTH 640
 #define WINDOW_HEIGHT 480
@@ -39,7 +40,12 @@ int main(int argc, char** argv)
 
     bitmap_image* bm = NULL;
     if (argc > 2)
-        bm = new bitmap_image(std::string(argv[2]));
+    {
+        // bm = new bitmap_image(std::string(argv[2]));
+        int width,height,n;
+        unsigned char* data = stbi_load(argv[2],&width,&height,&n,4);
+        bm = new bitmap_image(width,height,n,data);
+    }
 
     
     OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh =

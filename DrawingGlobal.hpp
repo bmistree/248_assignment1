@@ -6,7 +6,7 @@
 #include "ObjElement.hpp"
 #include "Util.hpp"
 #include <OpenVolumeMesh/Mesh/PolyhedralMesh.hh>
-#include "bitmap_image.hpp"
+
 
 #define PERSPECTIVE_NEAR_PLANE_ANGLE 60.f
 #define INITIAL_EYE_X 0.f

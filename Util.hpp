@@ -28,5 +28,16 @@ public:
     }
 };
 
+class bitmap_image
+{
+public:
+    bitmap_image(int _w,int _h, int _n, unsigned char* _data)
+     : width(_w),height(_h), n(_n),data(_data)
+    {}
+    int width,height,n;
+    unsigned char* data;
+};
+
+
 
 #endif
