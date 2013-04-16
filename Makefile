@@ -12,8 +12,11 @@ SOS=/usr/lib/libboost_regex.so /usr/local/lib/OpenVolumeMesh/libOpenVolumeMesh.a
 %.o: %.cpp $(DEPS)
 	$(COMPILER) -c -o $@ $< $(FLAGS) $(LIBS) 
 
+%.o: %.c $(DEPS)
+	$(COMPILER) -c -o $@ $< $(FLAGS) $(LIBS) 
 
-load_file_test: $(OBJ_BASIC) LoadFile.o DrawingGlobal.o Subdivider.o DrawingGlobal.hpp $(SOS)
+
+load_file_test: $(OBJ_BASIC) LoadFile.o DrawingGlobal.o Subdivider.o DrawingGlobal.hpp Bitmap.o $(SOS)
 	$(COMPILER) -o $@ $^ $(FLAGS) $(LIBS) 
 
 

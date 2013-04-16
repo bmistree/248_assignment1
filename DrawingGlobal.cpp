@@ -20,7 +20,7 @@ static void b_normalize(OpenVolumeMesh::Geometry::Vec3f& normal)
 DrawingGlobal::DrawingGlobal(
     OpenVolumeMesh::GeometricPolyhedralMeshV4f* _obj_mesh,
     TextureCoordinate::TextureCoordinateMap* _tc_map,
-    VertexNormal::VertNormalMap* _vnmap, Vertex::VertexMap* _vmap, bitmap_image* _bm)
+    VertexNormal::VertNormalMap* _vnmap, Vertex::VertexMap* _vmap, Bitmap* _bm)
  : obj_mesh(_obj_mesh), tc_map(_tc_map),vnmap(_vnmap),vmap(_vmap),
    original_obj_mesh(_obj_mesh), original_vnmap(_vnmap),original_vmap(_vmap),
    bm(_bm),shading(GL_FLAT),gl_begin_type(GL_TRIANGLES)
@@ -54,12 +54,13 @@ DrawingGlobal::DrawingGlobal(
 
     if (bm != NULL)
     {
-        glGenTextures(1,&texture_id);
-        glBindTexture(GL_TEXTURE_2D,texture_id);
-        glTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE );
-        glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA8,
-            bm->width, bm->height,0,GL_RGBA,
-            GL_UNSIGNED_BYTE,bm->data);
+        glGenTextures(1, &texture_id);
+
+	glBindTexture(GL_TEXTURE_2D, texture_id);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+	glTexImage2D(GL_TEXTURE_2D, 0, 3, bm->width, bm->height, 0,
+            GL_RGB, GL_UNSIGNED_BYTE, bm->data);
     }
     
 }
