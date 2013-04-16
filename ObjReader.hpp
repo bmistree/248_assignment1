@@ -12,9 +12,9 @@ public:
     static OpenVolumeMesh::GeometricPolyhedralMeshV4f* read_object_file(
         const std::string& filename,
         TextureCoordinate::TextureCoordinateMap& obj_tc_map,
-        TextureCoordinate::TextureCoordinateMap& open_tc_map,
+        TextureCoordinate::FaceTextureCoordinateMap& open_tc_map,
         VertexNormal::VertNormalMap& obj_vnmap,
-        VertexNormal::VertNormalMap& open_vnmap,
+        VertexNormal::FaceVertNormalMap& open_vnmap,
         Vertex::VertexMap& vmap);
     
 private:
@@ -25,9 +25,9 @@ private:
     static void read_element_from_string(
         const std::string& line,
         TextureCoordinate::TextureCoordinateMap& obj_tc_map,
-        TextureCoordinate::TextureCoordinateMap& open_tc_map,        
+        TextureCoordinate::FaceTextureCoordinateMap& open_tc_map,        
         VertexNormal::VertNormalMap& obj_vnmap,
-        VertexNormal::VertNormalMap& open_vnmap,
+        VertexNormal::FaceVertNormalMap& open_vnmap,
         Vertex::VertexMap& vmap,
         OpenVolumeMesh::GeometricPolyhedralMeshV4f*);
 
@@ -38,9 +38,9 @@ private:
     static void read_all_file_elements(
         const std::string& filename,
         TextureCoordinate::TextureCoordinateMap& obj_tc_map,
-        TextureCoordinate::TextureCoordinateMap& open_tc_map,
+        TextureCoordinate::FaceTextureCoordinateMap& open_tc_map,
         VertexNormal::VertNormalMap& obj_vnmap,
-        VertexNormal::VertNormalMap& open_vnmap,
+        VertexNormal::FaceVertNormalMap& open_vnmap,
         Vertex::VertexMap& vmap,
         OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh);
 };

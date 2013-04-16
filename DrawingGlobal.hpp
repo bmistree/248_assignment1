@@ -22,8 +22,8 @@ class DrawingGlobal
 public:
     DrawingGlobal(
         OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh,
-        TextureCoordinate::TextureCoordinateMap* tc_map,
-        VertexNormal::VertNormalMap* vnmap,
+        TextureCoordinate::FaceTextureCoordinateMap* tc_map,
+        VertexNormal::FaceVertNormalMap* vnmap,
         Vertex::VertexMap* vmap, Bitmap* bm);
     ~DrawingGlobal();
 
@@ -38,17 +38,19 @@ public:
     
 private:
     OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh;
-    TextureCoordinate::TextureCoordinateMap* tc_map;
-    VertexNormal::VertNormalMap* vnmap;
+    TextureCoordinate::FaceTextureCoordinateMap* tc_map;
+    VertexNormal::FaceVertNormalMap* vnmap;
     Vertex::VertexMap* vmap;
 
     void draw_global_coords();
     
     OpenVolumeMesh::GeometricPolyhedralMeshV4f* original_obj_mesh;
-    TextureCoordinate::TextureCoordinateMap* oringal_tc_map;
-    VertexNormal::VertNormalMap* original_vnmap;
+    TextureCoordinate::FaceTextureCoordinateMap* oringal_tc_map;
+    VertexNormal::FaceVertNormalMap* original_vnmap;
     Vertex::VertexMap* original_vmap;
 
+    void set_flat_normal(std::vector<OpenVolumeMesh::Geometry::Vec4f>& vertex_points);
+    
     void initialize();
     
     Point4 eye;

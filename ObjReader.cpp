@@ -8,9 +8,9 @@
 OpenVolumeMesh::GeometricPolyhedralMeshV4f* ObjReader::read_object_file(
     const std::string& filename,
     TextureCoordinate::TextureCoordinateMap& obj_tc_map,
-    TextureCoordinate::TextureCoordinateMap& open_tc_map,
+    TextureCoordinate::FaceTextureCoordinateMap& open_tc_map,
     VertexNormal::VertNormalMap& obj_vnmap,
-    VertexNormal::VertNormalMap& open_vnmap,
+    VertexNormal::FaceVertNormalMap& open_vnmap,
     Vertex::VertexMap& vmap)
 {
     OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh =
@@ -25,9 +25,9 @@ OpenVolumeMesh::GeometricPolyhedralMeshV4f* ObjReader::read_object_file(
 void ObjReader::read_all_file_elements(
     const std::string& filename,
     TextureCoordinate::TextureCoordinateMap& obj_tc_map,
-    TextureCoordinate::TextureCoordinateMap& open_tc_map,    
+    TextureCoordinate::FaceTextureCoordinateMap& open_tc_map,    
     VertexNormal::VertNormalMap& obj_vnmap,
-    VertexNormal::VertNormalMap& open_vnmap,
+    VertexNormal::FaceVertNormalMap& open_vnmap,
     Vertex::VertexMap& vmap,
     OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh)
 {
@@ -44,9 +44,9 @@ void ObjReader::read_all_file_elements(
 void ObjReader::read_element_from_string(
     const std::string& line_to_read,
     TextureCoordinate::TextureCoordinateMap& obj_tc_map,
-    TextureCoordinate::TextureCoordinateMap& open_tc_map,
+    TextureCoordinate::FaceTextureCoordinateMap& open_tc_map,
     VertexNormal::VertNormalMap& obj_vnmap,
-    VertexNormal::VertNormalMap& open_vnmap,
+    VertexNormal::FaceVertNormalMap& open_vnmap,
     Vertex::VertexMap& vmap,
     OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh)
 {

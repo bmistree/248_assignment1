@@ -31,22 +31,21 @@ int main(int argc, char** argv)
     std::string filename(argv[1]);
     Vertex::VertexMap* vmap = new Vertex::VertexMap;
     VertexNormal::VertNormalMap* obj_vnmap = new VertexNormal::VertNormalMap;
-    VertexNormal::VertNormalMap* open_vnmap = new VertexNormal::VertNormalMap;
+    VertexNormal::FaceVertNormalMap* open_vnmap = new VertexNormal::FaceVertNormalMap;
     TextureCoordinate::TextureCoordinateMap* obj_tc_map =
         new TextureCoordinate::TextureCoordinateMap;
-    TextureCoordinate::TextureCoordinateMap* open_tc_map =
-        new TextureCoordinate::TextureCoordinateMap;
+    TextureCoordinate::FaceTextureCoordinateMap* open_tc_map =
+        new TextureCoordinate::FaceTextureCoordinateMap;
 
     Bitmap* bm = NULL;
     if (argc > 2)
     {
-        // bm = new bitmap_image(std::string(argv[2]));
-        // int width,height,n;
-        // unsigned char* data = stbi_load(argv[2],&width,&height,&n,4);
-        // bm = new bitmap_image(width,height,n,data);
         bm = new Bitmap();
         if (! bm->loadBMP(argv[2]))
+        {
+            std::cout<<"\n\n"<<argv[2]<<"\n\n";
             assert(false);
+        }
     }
 
     
@@ -55,8 +54,11 @@ int main(int argc, char** argv)
             filename,*obj_tc_map,*open_tc_map,*obj_vnmap,*open_vnmap,*vmap);
     
     if (open_vnmap->size() == 0)
-        VertexNormal::calculate_normals(*open_vnmap,obj_mesh);
-    
+    {
+        std::cout<<"\n\nMust calculate own normals\n";
+        assert(false);
+        //VertexNormal::calculate_normals(*open_vnmap,obj_mesh);
+    }
     
     drawing_global = new DrawingGlobal(obj_mesh,open_tc_map,open_vnmap,vmap,bm);
     setup_gl(filename,argc,argv,drawing_global);

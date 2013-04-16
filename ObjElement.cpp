@@ -143,8 +143,8 @@ bool is_empty(OpenVolumeMesh::VertexHandle& a, OpenVolumeMesh::VertexHandle& b,
 OpenVolumeMesh::FaceHandle Face::construct_from_line(
     OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh,
     TextureCoordinate::TextureCoordinateMap& obj_tc_map,
-    TextureCoordinate::TextureCoordinateMap& open_tc_map, 
-    VertexNormal::VertNormalMap& obj_vnmap,VertexNormal::VertNormalMap& open_vnmap,
+    TextureCoordinate::FaceTextureCoordinateMap& open_tc_map, 
+    VertexNormal::VertNormalMap& obj_vnmap,VertexNormal::FaceVertNormalMap& open_vnmap,
     const Vertex::VertexMap& vmap, std::string line)
 {
     OpenVolumeMesh::FaceHandle did_not_find;
@@ -158,6 +158,11 @@ OpenVolumeMesh::FaceHandle Face::construct_from_line(
         return did_not_find;
 
     std::vector<OpenVolumeMesh::VertexHandle> vertices;
+    std::vector<Vertex::VertexId> v_ids;
+    std::vector<TextureCoordinate::TextureCoordId> tc_ids;
+    std::vector<VertexNormal::VertexNormalId> vn_ids;
+
+    
     VertexNormal::VertexNormalId vnid;
     TextureCoordinate::TextureCoordId tcid;
     bool had_normal = false;
@@ -198,25 +203,26 @@ OpenVolumeMesh::FaceHandle Face::construct_from_line(
                 vnid = atoi(
                     std::string(matches[3].first,matches[3].second).c_str());
                 had_normal = true;
-                
+
+                // using minus 1 here to synchronize numbering from obj with
+                // numbering from openvolumemesh handles
+                v_ids.push_back(vid-1);
                 Vertex::VertexMapCIter citer = vmap.find(vid);
                 vertices.push_back(citer->second);
-                
+                tc_ids.push_back(tcid);
+                vn_ids.push_back(vnid);
                 to_search_from = matches[3].second;
             }
         }
-        
+
         OpenVolumeMesh::FaceHandle ovm_id = obj_mesh->add_face(vertices);
         if (had_normal)
         {
-            if (obj_vnmap.find(vnid) == obj_vnmap.end())
-                assert(false);
-            
-            VertexNormal* vn = obj_vnmap[vnid];
-            open_vnmap[ovm_id] = vn;
-
-            TextureCoordinate* tc = obj_tc_map[tcid];
-            open_tc_map[ovm_id] = tc;
+            for (int i = 0; i < tc_ids.size(); ++i)
+            {
+                open_vnmap[ovm_id][v_ids[i]] = obj_vnmap[vn_ids[i]];
+                open_tc_map[ovm_id][v_ids[i]] = obj_tc_map[tc_ids[i]];
+            }
         }
         return ovm_id;
     }

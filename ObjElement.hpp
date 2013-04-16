@@ -41,6 +41,10 @@ class TextureCoordinate : public ObjElement
 public:
     typedef int TextureCoordId;
     typedef std::unordered_map<TextureCoordId,TextureCoordinate*> TextureCoordinateMap;
+
+    typedef std::unordered_map<
+        TextureCoordId,TextureCoordinateMap> FaceTextureCoordinateMap;
+
     
     ~TextureCoordinate();
     static bool construct_from_line(
@@ -83,8 +87,8 @@ public:
     typedef VertNormalMap::const_iterator VertNormalMapCIter;
 
     typedef std::unordered_map<
-        OpenVolumeMesh::VertexHandle,VertexNormal*,
-        VertexHandleHasher> OpenVertNormalMap;
+        VertexNormalId,VertNormalMap> FaceVertNormalMap;
+
 
     virtual void pretty_print() const{}
     
@@ -124,14 +128,10 @@ public:
     static OpenVolumeMesh::FaceHandle construct_from_line(
         OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh,
         TextureCoordinate::TextureCoordinateMap& obj_tc_map,
-        TextureCoordinate::TextureCoordinateMap& open_tc_map, 
-        VertexNormal::VertNormalMap& obj_vnmap,VertexNormal::VertNormalMap& open_vnmap,
+        TextureCoordinate::FaceTextureCoordinateMap& open_tc_map, 
+        VertexNormal::VertNormalMap& obj_vnmap,VertexNormal::FaceVertNormalMap& open_vnmap,
         const Vertex::VertexMap& vmap, std::string line);
-    
-    // static OpenVolumeMesh::FaceHandle construct_from_line(
-    //     OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh,
-    //     VertexNormal::VertNormalMap& obj_vnmap,VertexNormal::VertNormalMap& open_vnmap,
-    //     const Vertex::VertexMap& vmap, std::string line);
 };
 
 #endif
+

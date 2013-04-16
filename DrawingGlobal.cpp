@@ -39,8 +39,8 @@ static void makeCheckImage(void)
 
 DrawingGlobal::DrawingGlobal(
     OpenVolumeMesh::GeometricPolyhedralMeshV4f* _obj_mesh,
-    TextureCoordinate::TextureCoordinateMap* _tc_map,
-    VertexNormal::VertNormalMap* _vnmap, Vertex::VertexMap* _vmap, Bitmap* _bm)
+    TextureCoordinate::FaceTextureCoordinateMap* _tc_map,
+    VertexNormal::FaceVertNormalMap* _vnmap, Vertex::VertexMap* _vmap, Bitmap* _bm)
  : obj_mesh(_obj_mesh), tc_map(_tc_map),vnmap(_vnmap),vmap(_vmap),
    original_obj_mesh(_obj_mesh), original_vnmap(_vnmap),original_vmap(_vmap),
    bm(_bm),shading(GL_FLAT),gl_begin_type(GL_TRIANGLES)
@@ -180,18 +180,18 @@ void DrawingGlobal::keyboard_func(unsigned char key,int x, int y)
     else if (key == '4')
         gl_begin_type = GL_TRIANGLES;
 
-    else if (key == '+')
-    {
-        vnmap = new VertexNormal::VertNormalMap;
-        obj_mesh = Subdivider::subdivide(obj_mesh);
-        VertexNormal::calculate_normals(*vnmap,obj_mesh);
-    }
-    else if (key == '0')
-    {
-        obj_mesh = original_obj_mesh;
-        vnmap = original_vnmap;
-        vmap = original_vmap;
-    }
+    // else if (key == '+')
+    // {
+    //     vnmap = new VertexNormal::VertNormalMap;
+    //     obj_mesh = Subdivider::subdivide(obj_mesh);
+    //     VertexNormal::calculate_normals(*vnmap,obj_mesh);
+    // }
+    // else if (key == '0')
+    // {
+    //     obj_mesh = original_obj_mesh;
+    //     vnmap = original_vnmap;
+    //     vmap = original_vmap;
+    // }
     
     glutPostRedisplay();    
 }
@@ -401,6 +401,7 @@ void DrawingGlobal::render_frame()
     {
         glBegin(gl_begin_type);
         
+        OpenVolumeMesh::FaceHandle face_handle = *iter;
         const OpenVolumeMesh::OpenVolumeMeshFace& face = obj_mesh->face(*iter);
         const std::vector<OpenVolumeMesh::HalfEdgeHandle>& half_edge_handles = face.halfedges();
 
@@ -419,34 +420,21 @@ void DrawingGlobal::render_frame()
 
             vertex_points.push_back(vertex_vec);
 
-            if (vnmap->find(from_vertex) == vnmap->end())
-                assert(false);
-
             if (bm != NULL)
             {
-                TextureCoordinate* tc = (*tc_map)[from_vertex];
+                TextureCoordinate* tc = (*tc_map)[face_handle][from_vertex];
                 std::pair<float,float> p (tc->get_u(),tc->get_v());
                 texture_coords.push_back(p);
             }
             
-            VertexNormal* vn = (*vnmap)[from_vertex];
+            VertexNormal* vn = (*vnmap)[face_handle][from_vertex];
             vertex_normals.push_back(vn->open_vec3());
             vertex_normal += vn->open_vec3();
         }
 
         if (shading == GL_FLAT)
-        {
-            OpenVolumeMesh::Geometry::Vec3f vec0(
-                vertex_points[0][0],vertex_points[0][1],vertex_points[0][2]);
-            OpenVolumeMesh::Geometry::Vec3f vec1(
-                vertex_points[1][0],vertex_points[1][1],vertex_points[1][2]);
-            OpenVolumeMesh::Geometry::Vec3f vec2(
-                vertex_points[2][0],vertex_points[2][1],vertex_points[2][2]);
-            
-            OpenVolumeMesh::Geometry::Vec3f dir =(vec1 - vec0) % (vec2 - vec0);
-            b_normalize(dir);
-            glNormal3f(dir[0],dir[1],dir[2]);
-        }        
+            set_flat_normal(vertex_points);
+
 
         // actually draw the points
         uint64_t counter = 0;
@@ -457,31 +445,16 @@ void DrawingGlobal::render_frame()
             {
                 OpenVolumeMesh::Geometry::Vec3f smooth_normal = vertex_normals[counter];
                 b_normalize(smooth_normal);
-                glNormal3f(
-                    smooth_normal[0],
-                    smooth_normal[1],
-                    smooth_normal[2]);
+                glNormal3f(smooth_normal[0],smooth_normal[1],smooth_normal[2]);
             }
 
-            static int tmp = 0;
-            ++tmp;
             if (counter < texture_coords.size())
             {
                 std::pair<float,float> p = texture_coords[counter];
                 glTexCoord2f(p.first,p.second);
-
-                if (tmp < 1000)
-                {
-                    std::cout<<*iter<<":  "<<p.first<<" "<<p.second<<"\n";
-                    std::cout.flush();
-                }
-                
             }
 
-            glVertex3f(
-                (GLfloat)((*citer)[0]),
-                (GLfloat)((*citer)[1]),
-                (GLfloat)((*citer)[2]));
+            glVertex3f((GLfloat)((*citer)[0]),(GLfloat)((*citer)[1]),(GLfloat)((*citer)[2]));
             ++counter;
         }
         glEnd();
@@ -498,3 +471,17 @@ void DrawingGlobal::render_frame()
     
 }
 
+
+void DrawingGlobal::set_flat_normal(std::vector<OpenVolumeMesh::Geometry::Vec4f>& vertex_points)
+{
+    OpenVolumeMesh::Geometry::Vec3f vec0(
+        vertex_points[0][0],vertex_points[0][1],vertex_points[0][2]);
+    OpenVolumeMesh::Geometry::Vec3f vec1(
+        vertex_points[1][0],vertex_points[1][1],vertex_points[1][2]);
+    OpenVolumeMesh::Geometry::Vec3f vec2(
+        vertex_points[2][0],vertex_points[2][1],vertex_points[2][2]);
+
+    OpenVolumeMesh::Geometry::Vec3f dir =(vec1 - vec0) % (vec2 - vec0);
+    b_normalize(dir);
+    glNormal3f(dir[0],dir[1],dir[2]);
+}
