@@ -17,6 +17,8 @@ DrawingGlobal::DrawingGlobal(
    fmap(_fmap),
    bm(_bm)
 {
+    gl_begin_type = GL_LINE_LOOP;
+    
     diffuse[0] = 1.0;
     diffuse[1] = 1.0;
     diffuse[2] = 1.0;
