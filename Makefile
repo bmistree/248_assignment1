@@ -1,8 +1,8 @@
 COMPILER= g++
 FLAGS= -Wall -g -std=c++0x 
 LIBS= -lglut -lGL -lGLU -I/usr/local/include/
-DEPS= ObjReader.hpp ObjElement.hpp Util.hpp 
-OBJ_BASIC= ObjElement.o ObjReader.o 
+DEPS= ObjReader.hpp ObjElement.hpp Util.hpp VertexNormal.hpp
+OBJ_BASIC= ObjElement.o ObjReader.o Util.o
 PROGRAMS= read_file_test load_file_test
 SOS=/usr/lib/libboost_regex.so
 
@@ -16,7 +16,7 @@ SOS=/usr/lib/libboost_regex.so
 	$(COMPILER) -c -o $@ $< $(FLAGS) $(LIBS) 
 
 
-load_file_test: $(OBJ_BASIC) LoadFile.o DrawingGlobal.o DrawingGlobal.hpp Bitmap.o $(SOS)
+load_file_test: $(OBJ_BASIC) LoadFile.o DrawingGlobal.o VertexNormal.o Bitmap.o $(SOS)
 	$(COMPILER) -o $@ $^ $(FLAGS) $(LIBS) 
 
 

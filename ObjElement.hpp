@@ -6,8 +6,7 @@
 #include <GL/gl.h>
 #include <vector>
 #include <unordered_map>
-
-#define OBJ_FILE_COMMENT_START '#'
+#include "VertexNormal.hpp"
 
 class Face;
 
@@ -25,7 +24,7 @@ public:
         return _vid;
     }
 
-    const Point4& pt() const
+    const Point3& pt() const
     {
         return _pt;
     }
@@ -34,13 +33,17 @@ public:
     {
         _face_vec.push_back(f);
     }
+
+    VertexNormal* avg_normal (VertexNormal::VertNormalMap& vnmap);
     
 private:
-    Vertex(VertMap& vmap,float x, float y, float z, float w=1.0);
+    Vertex(VertMap& vmap,float x, float y, float z);
     ~Vertex();
     VertId _vid;
-    Point4 _pt;
+    Point3 _pt;
     std::vector<Face*> _face_vec;
+
+    VertexNormal* _avg_normal;
     
     static VertId _next_vid()
     {
@@ -82,39 +85,6 @@ private:
     }
 };
 
-class VertexNormal 
-{
-public:
-    typedef uint64_t VertNormalId;
-    typedef std::unordered_map<VertNormalId,VertexNormal*> VertNormalMap;
-    typedef VertNormalMap::iterator VertNormalMapIter;
-    typedef VertNormalMap::const_iterator VertNormalMapCIter;
-    
-    ~VertexNormal();
-    static bool construct_from_line(VertNormalMap& vnmap,std::string line);
-
-    VertNormalId vnid() const
-    {
-        return _vnid;
-    }
-    
-    const Point3& pt() const
-    {
-        return _pt;
-    }
-    
-     
-private:
-    VertexNormal(VertNormalMap& vnmap,const GLfloat& x, const GLfloat& y, const GLfloat& z);
-    VertNormalId _vnid;    
-    Point3 _pt;
-
-    static VertNormalId _next_vnid()
-    {
-        static VertNormalId vnid = 0;
-        return ++vnid;
-    }
-};
 
 
 struct FaceVertexData
@@ -149,27 +119,37 @@ public:
 
     ~Face();
 
+    void calc_normals(VertexNormal::VertNormalMap& vnmap);
+    
     FaceId fid() const
     {
         return _fid;
     }
 
-    FaceVertDataVecCIter vert_iter_begin() const
+    FaceVertDataVecIter vert_iter_begin() 
     {
         return _vert_data_vec.begin();
     }
 
-    FaceVertDataVecCIter vert_iter_end() const
+    FaceVertDataVecIter vert_iter_end() 
     {
         return _vert_data_vec.end();
+    }
+
+    VertexNormal* face_normal() const
+    {
+        return _face_normal;
     }
     
     
 private:
-    Face(FaceMap& fmap, const FaceVertDataVec& fvdv);
+    Face(FaceMap& fmap, VertexNormal::VertNormalMap& vnmap,
+        const FaceVertDataVec& fvdv);
     FaceId _fid;
     FaceVertDataVec _vert_data_vec;
 
+    VertexNormal* _face_normal;
+    
     static FaceId _next_fid()
     {
         static FaceId fid = 0;

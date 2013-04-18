@@ -3,6 +3,7 @@
 #include <string>
 #include "ObjReader.hpp"
 #include "ObjElement.hpp"
+#include "VertexNormal.hpp"
 #include <vector>
 #include <unordered_map>
 #include <GL/glut.h>
@@ -45,7 +46,8 @@ int main(int argc, char** argv)
     }
 
     ObjReader::read_object_file(filename,*vmap,*vnmap,*tcmap,*fmap);
-
+    
+    
     drawing_global = new DrawingGlobal(vmap,vnmap,tcmap,fmap,bm);
     setup_gl(filename,argc,argv,drawing_global);
 

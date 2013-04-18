@@ -279,12 +279,28 @@ void DrawingGlobal::render_frame()
     {
         Face* f = face_citer->second;
         glBegin(gl_begin_type);
+
+        if (shading == GL_FLAT)
+        {
+            VertexNormal* fnormal = f->face_normal();
+            const Point3& norm_pt = fnormal->pt();
+            glNormal3f(norm_pt.x,norm_pt.y,norm_pt.z);
+        }
+        
         for (FaceVertDataVecCIter vert_data_iter = f->vert_iter_begin();
              vert_data_iter != f->vert_iter_end(); ++vert_data_iter)
         {
+            Vertex* vert = (*vert_data_iter)->vert;
+            if (shading == GL_SMOOTH)
+            {
+                VertexNormal* vert_normal = vert->avg_normal(*vnmap);
+                const Point3& norm_pt = vert_normal->pt();
+                glNormal3f(norm_pt.x,norm_pt.y,norm_pt.z);
+            }
+            
             Vertex* single_vert = (*vert_data_iter)->vert;
-            const Point4& vert_pt = single_vert->pt();
-            glVertex4f(vert_pt.x,vert_pt.y,vert_pt.z,vert_pt.w);
+            const Point3& vert_pt = single_vert->pt();
+            glVertex3f(vert_pt.x,vert_pt.y,vert_pt.z);
         }
         glEnd();
     }

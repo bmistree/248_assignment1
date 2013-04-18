@@ -21,6 +21,14 @@ void ObjReader::read_object_file(
     }
 
     file.close();
+
+    // calculate normals for all faces
+    for (Face::FaceMapIter fiter = fmap.begin(); fiter != fmap.end();
+         ++fiter)
+    {
+        fiter->second->calc_normals(vnmap);
+    }
+    
 }
 
 

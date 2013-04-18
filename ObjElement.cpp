@@ -7,38 +7,48 @@
 #include <cassert>
 #include <boost/regex.hpp>
 #include <math.h>
+#include "VertexNormal.hpp"
 
-/**
-   Returns copy of string with no whitespace at beginning or end of string.
- */
-static void trim(std::string& line)
-{
-    std::size_t index_str_front = line.find_first_not_of(" \t");
-    if (index_str_front != std::string::npos)
-    {
-        std::size_t index_str_end = line.find_last_not_of(" \t");
-        line.replace(index_str_end + 1,line.size(),"");
-        line.replace(0,index_str_front,"");
-    }
-}
-
-/**
-   Comment begins at '#' and ends at end of line.  Removes everything in the
-   comment from begin to end of line.
- */
-static void remove_comment(std::string& line)
-{
-    std::size_t index_comment_begin = line.find_first_of(OBJ_FILE_COMMENT_START);
-    if (index_comment_begin != std::string::npos)
-        line.replace(index_comment_begin,line.size(),"");
-}
-
-Vertex::Vertex(VertMap& vmap, float x, float y, float z,float w)
+Vertex::Vertex(VertMap& vmap, float x, float y, float z)
  : _vid (_next_vid()),
-   _pt(x,y,z,w)
+   _pt(x,y,z),
+   _avg_normal(NULL)
 {
     vmap[_vid] = this;
 }
+
+VertexNormal* Vertex::avg_normal (VertexNormal::VertNormalMap& vnmap) 
+{
+    if (_avg_normal == NULL)
+    {
+        Point3 avger(0,0,0);
+        for (std::vector<Face*>::iterator iter = _face_vec.begin();
+             iter != _face_vec.end(); ++iter)
+        {
+            Face* face = *iter;
+            VertexNormal* vn = face->face_normal();
+            avger = avger + vn->pt();
+        }
+
+        if (_face_vec.size() == 0)
+            assert(false);
+
+        avger.normalize();
+        _avg_normal = new VertexNormal(vnmap,avger.x,avger.y,avger.z);
+    }
+    return _avg_normal;
+}
+
+
+Vertex::~Vertex()
+{
+    if (_avg_normal != NULL)
+    {
+        delete _avg_normal;
+        _avg_normal = NULL;
+    }
+}
+
 
 bool Vertex::construct_from_line(VertMap& vmap,std::string line)
 {
@@ -61,15 +71,14 @@ bool Vertex::construct_from_line(VertMap& vmap,std::string line)
         // start from 1 to remove command character, 'v'.
         std::string to_tokenize = line.substr(1);
         std::istringstream tokenizer(to_tokenize);
-        float x,y,z,w;
-        w = 1.0;
+        float x,y,z;
         tokenizer >> x;
         tokenizer >> y;
         tokenizer >> z;
-        if (! tokenizer.eof())
-            tokenizer >> w;
+        // if (! tokenizer.eof())
+        //     tokenizer >> w;
 
-        new Vertex(vmap,x,y,z,w);
+        new Vertex(vmap,x,y,z);
         return true;
     }
     return false;
@@ -118,44 +127,6 @@ bool TextureCoordinate::construct_from_line(
 }
 
 
-/************* Vertex Normal **********/
-VertexNormal::VertexNormal(VertNormalMap& vnmap, const GLfloat &x, const GLfloat& y, const GLfloat&z)
- : _vnid(_next_vnid()),
-   _pt(x,y,z)
-{
-    vnmap[_vnid] = this;
-}
-
-VertexNormal::~VertexNormal()
-{}
-
-
-bool VertexNormal::construct_from_line(VertNormalMap& vnmap,std::string line)
-{
-    remove_comment(line);
-    trim(line);
-
-    // using 2 here because, we must check at least second index to ensure that
-    // not a texture coordinate or normal
-    if (line.size() < 2)
-        return false;
-
-    if ((line[0] == 'v') && (line[1] == 'n'))
-    {
-        // start from 1 to remove command characters, 'vn'.
-        std::string to_tokenize = line.substr(2);
-        std::istringstream tokenizer(to_tokenize);
-        float x,y,z;
-        tokenizer >> x;
-        tokenizer >> y;
-        tokenizer >> z;        
-
-        new VertexNormal(vnmap,(GLfloat)x, (GLfloat)y, (GLfloat)z);
-        return true;
-    }
-    return false;
-}
-
 
 
 
@@ -169,16 +140,41 @@ Face::~Face()
     }
 }
 
-Face::Face(FaceMap& fmap, const FaceVertDataVec& fvdv)
+Face::Face(FaceMap& fmap, VertexNormal::VertNormalMap& vnmap,
+    const FaceVertDataVec& fvdv)
  : _fid(_next_fid()),
    _vert_data_vec(fvdv)
 {
+    Point3 veca = _vert_data_vec[0]->vert->pt() - _vert_data_vec[1]->vert->pt();
+    Point3 vecb = _vert_data_vec[2]->vert->pt() - _vert_data_vec[1]->vert->pt();
+    Point3 normal_vec = veca % vecb;
+    normal_vec.normalize();
+    _face_normal = new VertexNormal(vnmap,normal_vec.x,normal_vec.y,normal_vec.z);
+    
     fmap[_fid] = this;
 
     for( FaceVertDataVecIter fvdv_iter = _vert_data_vec.begin();
          fvdv_iter != _vert_data_vec.end(); ++fvdv_iter)
     {
         (*fvdv_iter) -> vert -> add_face(this);
+    }
+}
+
+
+/**
+   When vertices do not have their normals specified, we calculate their normals
+   as the average of all surrounding face normals
+ */
+void Face::calc_normals(VertexNormal::VertNormalMap& vnmap)
+{
+    for (FaceVertDataVecIter iter = vert_iter_begin();
+         iter != vert_iter_end(); ++iter)
+    {
+        FaceVertexData* fvd = *iter;
+        Vertex* vert = fvd->vert;
+        VertexNormal* vert_normal = fvd->vert_normal;
+        if (vert_normal == NULL)
+            fvd->vert_normal = vert-> avg_normal(vnmap);
     }
 }
 
@@ -246,7 +242,7 @@ bool Face::construct_from_line(
                 to_search_from = matches[3].second;
             }
         }
-        new Face(fmap,face_vert_data_vec);
+        new Face(fmap,vnmap,face_vert_data_vec);
         return true;
     }
     return false;
