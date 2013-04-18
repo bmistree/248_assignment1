@@ -6,129 +6,176 @@
 #include <GL/gl.h>
 #include <vector>
 #include <unordered_map>
-#include <OpenVolumeMesh/Mesh/PolyhedralMesh.hh>
-
 
 #define OBJ_FILE_COMMENT_START '#'
 
-// Pure virtual base class
-class ObjElement
+class Face;
+
+class Vertex
 {
 public:
-    virtual void pretty_print() const = 0;
+    typedef uint64_t VertId;
+    typedef std::unordered_map<VertId, Vertex*> VertMap;
+    typedef VertMap::iterator VertMapIter;
+    typedef VertMap::const_iterator VertMapCIter;
+    static bool construct_from_line(VertMap& vmap,std::string line);
+    
+    VertId vid() const
+    {
+        return _vid;
+    }
+
+    const Point4& pt() const
+    {
+        return _pt;
+    }
+
+    void add_face(Face* f) 
+    {
+        _face_vec.push_back(f);
+    }
+    
+private:
+    Vertex(VertMap& vmap,float x, float y, float z, float w=1.0);
+    ~Vertex();
+    VertId _vid;
+    Point4 _pt;
+    std::vector<Face*> _face_vec;
+    
+    static VertId _next_vid()
+    {
+        static VertId vid = 0;
+        return ++vid;
+    }
+    
 };
 
-
-class Vertex: public ObjElement
+class TextureCoordinate 
 {
 public:
-    /**
-       @returns{ObjElement*} --- NULL if line did not match rule for this
-       ObjElement.  Otherwise, a pointer to a newly-constructed object element.
-     */
-    typedef uint64_t VertexId;
-    typedef std::unordered_map<VertexId,OpenVolumeMesh::VertexHandle> VertexMap;
-    typedef VertexMap::iterator VertexMapIter;
-    typedef VertexMap::const_iterator VertexMapCIter;
-
-    static OpenVolumeMesh::VertexHandle construct_from_line(
-        OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh,VertexMap& vmap,
-        std::string line);
-};
-
-class TextureCoordinate : public ObjElement
-{
-public:
-    typedef int TextureCoordId;
-    typedef std::unordered_map<TextureCoordId,TextureCoordinate*> TextureCoordinateMap;
-
-    typedef std::unordered_map<
-        TextureCoordId,TextureCoordinateMap> FaceTextureCoordinateMap;
-
+    typedef uint64_t TextCoordId;
+    typedef std::unordered_map<TextCoordId,TextureCoordinate*> TextCoordinateMap;
+    typedef TextCoordinateMap::iterator TextCoordinateMapIter;
+    typedef TextCoordinateMap::const_iterator TextCoordinateMapCIter;
     
     ~TextureCoordinate();
-    static bool construct_from_line(
-        OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh,
-        TextureCoordinateMap& obj_tc_map,
-        std::string line);
-    virtual void pretty_print() const;
-
-    TextureCoordId get_tc_id() const
-    {
-        return tid;
-    }
-            
-    GLfloat get_u()
-    {
-        return u;
-    }
-    GLfloat get_v()
-    {
-        return v;
-    }
+    static bool construct_from_line(TextCoordinateMap& tc_map,std::string line);
     
+    TextCoordId tcid() const
+    {
+        return _tcid;
+    }
+    const Point3&  pt() const
+    {
+        return _pt;
+    }
 
 private:
-    TextureCoordinate(GLfloat u, GLfloat v, GLfloat w=0.0);
-    GLfloat u,v,w;
+    TextureCoordinate(TextCoordinateMap& tc_map,GLfloat u, GLfloat v, GLfloat w=0.0);
+    TextCoordId _tcid;
+    Point3 _pt;
 
-    TextureCoordId tid;
+    static TextCoordId _next_tcid()
+    {
+        static TextCoordId tcid = 0;
+        return ++tcid;
+    }
 };
 
-class VertexNormal : public ObjElement
+class VertexNormal 
 {
 public:
-//    typedef uint64_t VertexNormalId;
-    typedef int VertexNormalId;
-    typedef std::unordered_map<VertexNormalId,VertexNormal*> VertNormalMap;
+    typedef uint64_t VertNormalId;
+    typedef std::unordered_map<VertNormalId,VertexNormal*> VertNormalMap;
     typedef VertNormalMap::iterator VertNormalMapIter;
     typedef VertNormalMap::const_iterator VertNormalMapCIter;
-
-    typedef std::unordered_map<
-        VertexNormalId,VertNormalMap> FaceVertNormalMap;
-
-
-    virtual void pretty_print() const{}
     
     ~VertexNormal();
-    static bool construct_from_line(
-        VertNormalMap& vnmap,std::string line);
+    static bool construct_from_line(VertNormalMap& vnmap,std::string line);
 
-    static void calculate_average_normals(VertNormalMap& vnmap,
-        OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh);
-
-    OpenVolumeMesh::Geometry::Vec3f open_vec3() const
+    VertNormalId vnid() const
     {
-        return OpenVolumeMesh::Geometry::Vec3f (vn.x,vn.y,vn.z);
+        return _vnid;
     }
     
-    VertexNormalId get_vnid() const
+    const Point3& pt() const
     {
-        return vnid;
+        return _pt;
     }
     
+     
 private:
-    VertexNormal(const GLfloat& x, const GLfloat& y, const GLfloat& z);
+    VertexNormal(VertNormalMap& vnmap,const GLfloat& x, const GLfloat& y, const GLfloat& z);
+    VertNormalId _vnid;    
+    Point3 _pt;
 
-    static OpenVolumeMesh::Geometry::Vec3f calc_normal(
-        OpenVolumeMesh::VertexHandle vhandle0, OpenVolumeMesh::VertexHandle vhandle1,
-        OpenVolumeMesh::VertexHandle vhandle2,
-        OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh, bool& valid);
-    
-    Point4 vn;
-    VertexNormalId vnid;
+    static VertNormalId _next_vnid()
+    {
+        static VertNormalId vnid = 0;
+        return ++vnid;
+    }
 };
 
 
-class Face : public ObjElement
+struct FaceVertexData
+{
+    FaceVertexData(Vertex* _vert, VertexNormal* _vert_normal,
+        TextureCoordinate* _tc_coord)
+     : vert(_vert), vert_normal(_vert_normal),tc_coord(_tc_coord)
+    {}
+    
+    Vertex* vert;
+    
+    // may be NULL
+    VertexNormal* vert_normal;
+    TextureCoordinate* tc_coord;
+};
+typedef std::vector<FaceVertexData*> FaceVertDataVec;
+typedef FaceVertDataVec::iterator FaceVertDataVecIter;
+typedef FaceVertDataVec::const_iterator FaceVertDataVecCIter;
+
+
+class Face 
 {
 public:
-    static OpenVolumeMesh::FaceHandle construct_from_line(
-        OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh,
-        TextureCoordinate::TextureCoordinateMap& obj_tc_map,
-        TextureCoordinate::FaceTextureCoordinateMap& open_tc_map, 
-        VertexNormal::VertNormalMap& obj_vnmap,VertexNormal::FaceVertNormalMap& open_vnmap,
-        const Vertex::VertexMap& vmap, std::string line);
+    typedef uint64_t FaceId;
+    typedef std::unordered_map<FaceId,Face*> FaceMap;
+    typedef FaceMap::iterator FaceMapIter;
+    typedef FaceMap::const_iterator FaceMapCIter;
+    
+    static bool construct_from_line(
+        Vertex::VertMap& vmap,TextureCoordinate::TextCoordinateMap& tcmap,
+        VertexNormal::VertNormalMap& vnmap,Face::FaceMap& fmap, std::string line);
+
+    ~Face();
+
+    FaceId fid() const
+    {
+        return _fid;
+    }
+
+    FaceVertDataVecCIter vert_iter_begin() const
+    {
+        return _vert_data_vec.begin();
+    }
+
+    FaceVertDataVecCIter vert_iter_end() const
+    {
+        return _vert_data_vec.end();
+    }
+    
+    
+private:
+    Face(FaceMap& fmap, const FaceVertDataVec& fvdv);
+    FaceId _fid;
+    FaceVertDataVec _vert_data_vec;
+
+    static FaceId _next_fid()
+    {
+        static FaceId fid = 0;
+        return ++fid;
+    }
+    
 };
 
 #endif

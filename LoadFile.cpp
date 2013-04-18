@@ -9,8 +9,6 @@
 #include <GL/gl.h>
 #include "DrawingGlobal.hpp"
 #include "Util.hpp"
-//#include "bitmap_image.hpp"
-#include "Subdivider.hpp"
 #include "Bitmap.h"
 #define WINDOW_WIDTH 640
 #define WINDOW_HEIGHT 480
@@ -29,14 +27,12 @@ void keyboard_func(unsigned char key,int x, int y);
 int main(int argc, char** argv)
 {
     std::string filename(argv[1]);
-    Vertex::VertexMap* vmap = new Vertex::VertexMap;
-    VertexNormal::VertNormalMap* obj_vnmap = new VertexNormal::VertNormalMap;
-    VertexNormal::FaceVertNormalMap* open_vnmap = new VertexNormal::FaceVertNormalMap;
-    TextureCoordinate::TextureCoordinateMap* obj_tc_map =
-        new TextureCoordinate::TextureCoordinateMap;
-    TextureCoordinate::FaceTextureCoordinateMap* open_tc_map =
-        new TextureCoordinate::FaceTextureCoordinateMap;
-
+    Vertex::VertMap* vmap = new Vertex::VertMap;
+    VertexNormal::VertNormalMap* vnmap = new VertexNormal::VertNormalMap;
+    TextureCoordinate::TextCoordinateMap* tcmap =
+        new TextureCoordinate::TextCoordinateMap;
+    Face::FaceMap* fmap = new Face::FaceMap;
+    
     Bitmap* bm = NULL;
     if (argc > 2)
     {
@@ -48,21 +44,9 @@ int main(int argc, char** argv)
         }
     }
 
-    
-    OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh =
-        ObjReader::read_object_file(
-            filename,*obj_tc_map,*open_tc_map,*obj_vnmap,*open_vnmap,*vmap);
+    ObjReader::read_object_file(filename,*vmap,*vnmap,*tcmap,*fmap);
 
-
-    VertexNormal::VertNormalMap* avg_vnmap = NULL;
-    if (open_vnmap->size() == 0)
-    {
-        avg_vnmap = new VertexNormal::VertNormalMap;
-        VertexNormal::calculate_average_normals(*avg_vnmap,obj_mesh);
-    }
-
-    
-    drawing_global = new DrawingGlobal(obj_mesh,open_tc_map,open_vnmap,vmap,bm,avg_vnmap);
+    drawing_global = new DrawingGlobal(vmap,vnmap,tcmap,fmap,bm);
     setup_gl(filename,argc,argv,drawing_global);
 
     glutMainLoop();

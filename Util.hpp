@@ -2,7 +2,6 @@
 #define __UTIL_HPP__
 
 #include <GL/gl.h>
-#include <OpenVolumeMesh/Mesh/PolyhedralMesh.hh>
 
 struct Point4
 {
@@ -14,28 +13,13 @@ struct Point4
     GLfloat x,y,z,w;
 };
 
-
-class VertexHandleHasher{
-public:
-    size_t operator() (const OpenVolumeMesh::VertexHandle& vh) const
-    {
-        return hasher(vh);
-    }
-
-    static size_t hasher (const OpenVolumeMesh::VertexHandle& vh)
-    {
-        return vh.idx();
-    }
-};
-
-class bitmap_image
+struct Point3
 {
-public:
-    bitmap_image(int _w,int _h, int _n, unsigned char* _data)
-     : width(_w),height(_h), n(_n),data(_data)
+    Point3(){}
+    Point3(GLfloat _x, GLfloat _y, GLfloat _z)
+     : x(_x), y(_y), z(_z)
     {}
-    int width,height,n;
-    unsigned char* data;
+    GLfloat x,y,z;
 };
 
 

@@ -9,13 +9,12 @@
 class ObjReader
 {
 public:
-    static OpenVolumeMesh::GeometricPolyhedralMeshV4f* read_object_file(
+    static void read_object_file(
         const std::string& filename,
-        TextureCoordinate::TextureCoordinateMap& obj_tc_map,
-        TextureCoordinate::FaceTextureCoordinateMap& open_tc_map,
-        VertexNormal::VertNormalMap& obj_vnmap,
-        VertexNormal::FaceVertNormalMap& open_vnmap,
-        Vertex::VertexMap& vmap);
+        Vertex::VertMap& vmap,
+        VertexNormal::VertNormalMap& vnmap,
+        TextureCoordinate::TextCoordinateMap& tcmap,        
+        Face::FaceMap& fmap);
     
 private:
 
@@ -24,25 +23,10 @@ private:
      */
     static void read_element_from_string(
         const std::string& line,
-        TextureCoordinate::TextureCoordinateMap& obj_tc_map,
-        TextureCoordinate::FaceTextureCoordinateMap& open_tc_map,        
-        VertexNormal::VertNormalMap& obj_vnmap,
-        VertexNormal::FaceVertNormalMap& open_vnmap,
-        Vertex::VertexMap& vmap,
-        OpenVolumeMesh::GeometricPolyhedralMeshV4f*);
-
-    /**
-       @param {std::string} filename --- Reads the .obj file stored by filename
-       and returns all elements it contains as a vector.
-     */
-    static void read_all_file_elements(
-        const std::string& filename,
-        TextureCoordinate::TextureCoordinateMap& obj_tc_map,
-        TextureCoordinate::FaceTextureCoordinateMap& open_tc_map,
-        VertexNormal::VertNormalMap& obj_vnmap,
-        VertexNormal::FaceVertNormalMap& open_vnmap,
-        Vertex::VertexMap& vmap,
-        OpenVolumeMesh::GeometricPolyhedralMeshV4f* obj_mesh);
+        Vertex::VertMap& vmap,
+        VertexNormal::VertNormalMap& vnmap,
+        TextureCoordinate::TextCoordinateMap& tcmap,
+        Face::FaceMap& fmap);
 };
 
 #endif
