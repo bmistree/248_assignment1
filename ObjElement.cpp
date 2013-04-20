@@ -32,7 +32,7 @@ VertexNormal* Vertex::avg_normal (VertexNormal::VertNormalMap& vnmap)
 
         if (_face_vec.size() == 0)
             assert(false);
-
+        
         avger.normalize();
         _avg_normal = new VertexNormal(vnmap,avger.x,avger.y,avger.z);
     }
@@ -75,8 +75,6 @@ bool Vertex::construct_from_line(VertMap& vmap,std::string line)
         tokenizer >> x;
         tokenizer >> y;
         tokenizer >> z;
-        // if (! tokenizer.eof())
-        //     tokenizer >> w;
 
         new Vertex(vmap,x,y,z);
         return true;
@@ -149,7 +147,9 @@ Face::Face(FaceMap& fmap, VertexNormal::VertNormalMap& vnmap,
     Point3 vecb = _vert_data_vec[2]->vert->pt() - _vert_data_vec[1]->vert->pt();
     Point3 normal_vec = veca % vecb;
     normal_vec.normalize();
-    _face_normal = new VertexNormal(vnmap,normal_vec.x,normal_vec.y,normal_vec.z);
+    _face_normal = new VertexNormal(
+        vnmap,normal_vec.x,-normal_vec.y,-normal_vec.z);
+
     
     fmap[_fid] = this;
 

@@ -18,6 +18,7 @@ DrawingGlobal::DrawingGlobal(
    bm(_bm)
 {
     gl_begin_type = GL_LINE_LOOP;
+    shading = GL_FLAT;
     
     diffuse[0] = 1.0;
     diffuse[1] = 1.0;
