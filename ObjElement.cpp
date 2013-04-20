@@ -150,7 +150,6 @@ Face::Face(FaceMap& fmap, VertexNormal::VertNormalMap& vnmap,
     _face_normal = new VertexNormal(
         vnmap,normal_vec.x,-normal_vec.y,-normal_vec.z);
 
-    
     fmap[_fid] = this;
 
     for( FaceVertDataVecIter fvdv_iter = _vert_data_vec.begin();
