@@ -283,6 +283,17 @@ void DrawingGlobal::render_frame()
     
     if (spline != NULL)
     {
+        // draw control points
+        const ControlVec& cv = spline->control_points();
+        for (ControlVecCIter citer = cv.begin(); citer != cv.end();
+             ++citer)
+        {
+            Point3* control_point = *citer;
+            draw_control_point(control_point);
+        }
+
+
+        // translate model view before drawing
         Point3 translate_point;
         spline->get_pos(
             ticks_since_start*CALLBACK_TIME_MS/1000.,translate_point);
@@ -337,3 +348,12 @@ void DrawingGlobal::render_frame()
     glFlush();
 }
 
+
+
+void DrawingGlobal::draw_control_point(Point3* center_x)
+{
+    glPushMatrix();
+    glTranslatef(center_x->x,center_x->y,center_x->z);
+    glutSolidTeapot(.5);
+    glPopMatrix();
+}

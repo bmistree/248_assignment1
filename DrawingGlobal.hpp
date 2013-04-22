@@ -62,6 +62,8 @@ private:
 
     bool initialized;
 
+
+    void draw_control_point(Point3* center_x);
     void draw_global_coords();
     void initialize();
 };

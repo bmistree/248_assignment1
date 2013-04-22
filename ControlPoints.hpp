@@ -9,6 +9,7 @@
 
 typedef std::vector<Point3*> ControlVec;
 typedef ControlVec::iterator ControlVecIter;
+typedef ControlVec::const_iterator ControlVecCIter;
 
 
 class ControlPoints

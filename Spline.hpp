@@ -13,6 +13,10 @@ public:
     ~Spline();
 
     void get_pos(float at_time,Point3& pt);
+    const ControlVec& control_points()
+    {
+        return cv;
+    }
     
 private:
     static const Matrix4& point_matrix();
