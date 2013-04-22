@@ -28,8 +28,13 @@ struct Point4
     Point4(GLfloat _x, GLfloat _y, GLfloat _z, GLfloat _w=1.0f)
      : x(_x), y(_y), z(_z), w(_w)
     {}
-    GLfloat x,y,z,w;
 
+    float operator* (const Point4& pt) const
+    {
+        return x*pt.x + y*pt.y + z*pt.z + w*pt.w;
+    }
+
+    GLfloat x,y,z,w;
     
 };
 
@@ -82,6 +87,30 @@ struct Point3
         z /= len;
     }
     
+};
+
+class Matrix4
+{
+public:
+    Matrix4(const Point4& _row0, const Point4& _row1, const Point4& _row2, const Point4& _row3)
+     : row0(_row0),
+       row1(_row1),
+       row2(_row2),
+       row3(_row3)
+    {}
+    ~Matrix4(){}
+
+    Point4 operator* (const Point4& pt4) const
+    {
+        return Point4(
+            row0 * pt4,
+            row1 * pt4,
+            row2 * pt4,
+            row3 * pt4);
+    };
+    
+private:
+    Point4 row0,row1,row2,row3;
 };
 
 

@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <fstream>
+#include <sstream>
 
 typedef std::vector<Point3*> ControlVec;
 typedef ControlVec::iterator ControlVecIter;
@@ -34,7 +35,7 @@ private:
         trim(line);
         if (line.size() == 0)
             return NULL;
-        
+
         std::istringstream tokenizer(line);
         float x,y,z;
         tokenizer >> x;

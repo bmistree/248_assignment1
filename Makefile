@@ -16,7 +16,7 @@ SOS=/usr/lib/libboost_regex.so
 	$(COMPILER) -c -o $@ $< $(FLAGS) $(LIBS) 
 
 
-load_file_test: $(OBJ_BASIC) LoadFile.o DrawingGlobal.o VertexNormal.o Bitmap.o $(SOS)
+load_file_test: $(OBJ_BASIC) LoadFile.o DrawingGlobal.o VertexNormal.o Bitmap.o Spline.o $(SOS)
 	$(COMPILER) -o $@ $^ $(FLAGS) $(LIBS) 
 
 

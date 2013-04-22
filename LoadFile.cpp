@@ -12,8 +12,12 @@
 #include "Util.hpp"
 #include "Bitmap.h"
 #include "ControlPoints.hpp"
+#include "Spline.hpp"
+#include <sstream>
 #define WINDOW_WIDTH 640
 #define WINDOW_HEIGHT 480
+
+
 
 // Also responsible for cleanup of all data.
 DrawingGlobal* drawing_global = NULL;
@@ -33,9 +37,10 @@ int main(int argc, char** argv)
     int c;
     bool ctrl_pts_flag, obj_filename_flag, bmp_flag;
     ctrl_pts_flag = obj_filename_flag = bmp_flag = false;
+    float max_spline_time = 2.0;
     std::string obj_filename, ctrl_pts_filename, bmp_filename;
     
-    while( (c=getopt(argc,argv,"f:c:o:")) != -1)
+    while( (c=getopt(argc,argv,"f:c:o:t:")) != -1)
     {
         switch(c)
         {
@@ -51,6 +56,9 @@ int main(int argc, char** argv)
             bmp_flag = true;
             bmp_filename = std::string(optarg);
             break;
+          case 't':
+            std::istringstream tokenizer(optarg);
+            tokenizer >> max_spline_time;
         }
     }
 
@@ -81,12 +89,9 @@ int main(int argc, char** argv)
     }
 
     // read control points file
+    Spline* spline = NULL;
     if (ctrl_pts_flag)
-    {
-        ControlVec cv;
-        ControlPoints::load_control_points(ctrl_pts_filename,cv);
-    }
-    
+        spline = new Spline(ctrl_pts_filename, max_spline_time);
     
     drawing_global = new DrawingGlobal(vmap,vnmap,tcmap,fmap,bm);
     setup_gl(obj_filename,argc,argv,drawing_global);
