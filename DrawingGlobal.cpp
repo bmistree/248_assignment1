@@ -10,14 +10,16 @@
 DrawingGlobal::DrawingGlobal(
     Vertex::VertMap* _vmap, VertexNormal::VertNormalMap* _vnmap,
     TextureCoordinate::TextCoordinateMap* _tcmap, Face::FaceMap* _fmap,
-    Bitmap* _bm)
+    Bitmap* _bm, Spline* _spline)
  : vmap(_vmap),
    vnmap(_vnmap),
    tcmap(_tcmap),
    fmap(_fmap),
-   bm(_bm)
+   bm(_bm),
+   spline(_spline),
+   ticks_since_start(0)
 {
-    gl_begin_type = GL_LINE_LOOP;
+    gl_begin_type = GL_TRIANGLES;
     shading = GL_FLAT;
     
     diffuse[0] = 1.0;
@@ -159,6 +161,8 @@ void DrawingGlobal::keyboard_func(unsigned char key,int x, int y)
         specular[1] -= .1;
         specular[2] -= .1;
     }
+    else if (key == ' ')
+        ticks_since_start = 0;
     else if (key == '+')
     {
         // avg_vnmap = new VertexNormal::VertNormalMap;
@@ -202,7 +206,7 @@ void DrawingGlobal::draw_global_coords()
 
     glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT);
     glEnable(GL_COLOR_MATERIAL);
-    
+
 
     // draw ground plane before lookat
     glColor3f(.7f,0.f,0.f);
@@ -243,6 +247,13 @@ void DrawingGlobal::draw_global_coords()
 }
 
 
+void DrawingGlobal::timer_func()
+{
+    ++ticks_since_start;
+    render_frame();
+}
+
+
 void DrawingGlobal::render_frame()
 {
     initialize();
@@ -266,8 +277,22 @@ void DrawingGlobal::render_frame()
         eye.z + eye_direction_delta.z,
         // camera is oriented so that it's top is in the y direction
         0.f,1.f,0.f);
-    
+
+    // not moving lights + ground plane to follow interpolation itinerary
     draw_global_coords();
+    
+    if (spline != NULL)
+    {
+        Point3 translate_point;
+        spline->get_pos(
+            ticks_since_start*CALLBACK_TIME_MS/1000.,translate_point);
+
+        glTranslatef(
+            translate_point.x,
+            translate_point.y,
+            translate_point.z);
+    }
+
     if (bm != NULL)
     {
         glEnable(GL_TEXTURE_2D);

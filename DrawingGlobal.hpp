@@ -7,6 +7,7 @@
 #include "Util.hpp"
 #include "Bitmap.h"
 #include "VertexNormal.hpp"
+#include "Spline.hpp"
 
 #define PERSPECTIVE_NEAR_PLANE_ANGLE 60.f
 #define INITIAL_EYE_X 0.f
@@ -23,12 +24,13 @@ public:
     DrawingGlobal(
         Vertex::VertMap* vmap, VertexNormal::VertNormalMap* vnmap,
         TextureCoordinate::TextCoordinateMap* tcmap, Face::FaceMap* fmap,
-        Bitmap* bm);
+        Bitmap* bm, Spline* spline);
 
     ~DrawingGlobal();
 
     void set_window_width_height(GLfloat window_width,GLfloat window_height);
-    
+
+    void timer_func();
     void render_frame();
     void keyboard_func(unsigned char key,int x, int y);
     void idle_func();
@@ -41,7 +43,8 @@ private:
     TextureCoordinate::TextCoordinateMap* tcmap;
     Face::FaceMap* fmap;
     Bitmap* bm;
-
+    Spline* spline;
+    uint64_t ticks_since_start;
     GLuint texture_id;
 
     // info about light, shading and eye

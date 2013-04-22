@@ -1,13 +1,14 @@
 #include "Spline.hpp"
 #include "Util.hpp"
 #include "ControlPoints.hpp"
+#include <iostream>
 
 Spline::Spline(const std::string& filename, float _max_time)
  : max_time(_max_time)
 {
     ControlPoints::load_control_points(filename, cv);
+    time_slice_width = max_time/(float(cv.size()));
 }
-    
 
 const Matrix4& Spline::point_matrix()
 {
@@ -43,14 +44,14 @@ Spline::~Spline()
     time_to_coefficients_z.clear();
 }
 
-Point3* Spline::get_pos(float at_time)
+void Spline::get_pos(float at_time,Point3& pt)
 {
     // if requested a time past the maximum coefficient vector, then just use
     // the last time in the coefficient vector.
     uint64_t control_point_index = cv.size() - 1;
     if (at_time < max_time) 
         control_point_index = uint64_t( (at_time/max_time) * cv.size());
-    
+
     TimeCoeffMapCIter finder = time_to_coefficients_x.find(control_point_index);
     if (finder == time_to_coefficients_x.end())
         generate_new_coefficients(control_point_index);
@@ -58,28 +59,26 @@ Point3* Spline::get_pos(float at_time)
     Point4* coeff_x = time_to_coefficients_x[control_point_index];
     Point4* coeff_y = time_to_coefficients_y[control_point_index];
     Point4* coeff_z = time_to_coefficients_z[control_point_index];
+    
     // from coefficient, calculate point.
-
-    float time_slice_width = (((float)cv.size())/max_time);
-    uint64_t num_full_slices = (at_time/time_slice_width);
-    float remainder_time = at_time - (num_full_slices*time_slice_width);
+    float remainder_time = at_time - (control_point_index*time_slice_width);
     float normalized_time = remainder_time / time_slice_width;
+    
+    if (at_time >= max_time)
+        normalized_time = 1.0;
 
     // used for calculating positions based on time
     float squared_normalized_time = normalized_time*normalized_time;
     float cubed_normalized_time = squared_normalized_time* normalized_time;
 
-    Point3* pt = new Point3 (
-        coeff_x->x + coeff_x->y*normalized_time + coeff_x->z*squared_normalized_time +
-        coeff_x->w* cubed_normalized_time,
+    pt.x = coeff_x->x + coeff_x->y*normalized_time + coeff_x->z*squared_normalized_time +
+        coeff_x->w* cubed_normalized_time;
+    
+    pt.y = coeff_y->x + coeff_y->y*normalized_time + coeff_y->z*squared_normalized_time +
+        coeff_y->w* cubed_normalized_time;
 
-        coeff_y->x + coeff_y->y*normalized_time + coeff_y->z*squared_normalized_time +
-        coeff_y->w* cubed_normalized_time,
-
-        coeff_z->x + coeff_z->y*normalized_time + coeff_z->z*squared_normalized_time +
-        coeff_z->w* cubed_normalized_time);
-
-    return pt;
+    pt.z = coeff_z->x + coeff_z->y*normalized_time + coeff_z->z*squared_normalized_time +
+        coeff_z->w* cubed_normalized_time;
 }
 
 

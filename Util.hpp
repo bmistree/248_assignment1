@@ -6,8 +6,8 @@
 #include <string>
 
 #define OBJ_FILE_COMMENT_START '#'
-
-
+#define CALLBACK_TIME_MS 16.f
+#define DEFAULT_MAX_SPLINE_TIME 2.0f
 
 
 /**

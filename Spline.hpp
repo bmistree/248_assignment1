@@ -8,17 +8,18 @@
 class Spline
 {
 public:
-    //Spline(ControlVec* cv, float max_time);
+
     Spline(const std::string& filename, float max_time);
     ~Spline();
 
-    Point3* get_pos(float at_time);
+    void get_pos(float at_time,Point3& pt);
     
 private:
     static const Matrix4& point_matrix();
     void generate_new_coefficients(uint64_t control_point_index);
     
     ControlVec cv;
+    float time_slice_width;
     float max_time;
 
     typedef std::unordered_map<uint64_t,Point4*> TimeCoeffMap;

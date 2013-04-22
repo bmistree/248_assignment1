@@ -28,16 +28,14 @@ void setup_gl(
 
 void render_frame(void);
 void keyboard_func(unsigned char key,int x, int y);
-
+void timer_func(int value);
 
 int main(int argc, char** argv)
 {
-
-
     int c;
     bool ctrl_pts_flag, obj_filename_flag, bmp_flag;
     ctrl_pts_flag = obj_filename_flag = bmp_flag = false;
-    float max_spline_time = 2.0;
+    float max_spline_time = DEFAULT_MAX_SPLINE_TIME;
     std::string obj_filename, ctrl_pts_filename, bmp_filename;
     
     while( (c=getopt(argc,argv,"f:c:o:t:")) != -1)
@@ -93,15 +91,13 @@ int main(int argc, char** argv)
     if (ctrl_pts_flag)
         spline = new Spline(ctrl_pts_filename, max_spline_time);
     
-    drawing_global = new DrawingGlobal(vmap,vnmap,tcmap,fmap,bm);
+    drawing_global = new DrawingGlobal(vmap,vnmap,tcmap,fmap,bm,spline);
     setup_gl(obj_filename,argc,argv,drawing_global);
 
     glutMainLoop();
     delete drawing_global;
     return 0;
 }
-
-
 
 void setup_gl(const std::string &filename, int argc, char** argv,DrawingGlobal* dg)
 {
@@ -118,8 +114,15 @@ void setup_gl(const std::string &filename, int argc, char** argv,DrawingGlobal* 
     glViewport(0,0,WINDOW_WIDTH,WINDOW_HEIGHT);
     dg->set_window_width_height(WINDOW_WIDTH,WINDOW_HEIGHT);
 
+    glutTimerFunc(CALLBACK_TIME_MS,timer_func,0);
     glutDisplayFunc(render_frame);
     glutKeyboardFunc(keyboard_func);
+}
+
+void timer_func(int value)
+{
+    drawing_global->timer_func();
+    glutTimerFunc(CALLBACK_TIME_MS,timer_func,value);
 }
 
 void keyboard_func(unsigned char key,int x, int y)
