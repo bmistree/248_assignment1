@@ -2,7 +2,7 @@
 #define __SPLINE_HPP__
 
 #include "Util.hpp"
-#include "ControlPoints.hpp"
+#include "ControlPoint.hpp"
 #include <unordered_map>
 
 class Spline
@@ -12,7 +12,7 @@ public:
     Spline(const std::string& filename, float max_time);
     ~Spline();
 
-    void get_pos(float at_time,Point3& pt);
+    void get_pos(float at_time,Point3& pt,Quaternion& quat);
     const ControlVec& control_points()
     {
         return cv;

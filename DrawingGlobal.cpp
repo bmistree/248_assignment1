@@ -17,7 +17,8 @@ DrawingGlobal::DrawingGlobal(
    fmap(_fmap),
    bm(_bm),
    spline(_spline),
-   ticks_since_start(0)
+   ticks_since_start(0),
+   draw_ctrl_pts(false)
 {
     gl_begin_type = GL_TRIANGLES;
     shading = GL_FLAT;
@@ -129,6 +130,8 @@ void DrawingGlobal::keyboard_func(unsigned char key,int x, int y)
         shading = GL_SMOOTH;
     else if (key == '2')
         shading = GL_FLAT;
+    else if (key == 'c')
+        draw_ctrl_pts = !draw_ctrl_pts;
     else if (key == '3')
         gl_begin_type = GL_LINE_LOOP;
     else if (key == '4')
@@ -283,20 +286,23 @@ void DrawingGlobal::render_frame()
     
     if (spline != NULL)
     {
-        // draw control points
-        const ControlVec& cv = spline->control_points();
-        for (ControlVecCIter citer = cv.begin(); citer != cv.end();
-             ++citer)
+        // draw control points if we're supposed to
+        if (draw_ctrl_pts)
         {
-            Point3* control_point = *citer;
-            draw_control_point(control_point);
+            const ControlVec& cv = spline->control_points();
+            for (ControlVecCIter citer = cv.begin(); citer != cv.end();
+                 ++citer)
+            {
+                // Point3* control_point = *citer;
+                draw_control_point(*citer);
+            }
         }
-
 
         // translate model view before drawing
         Point3 translate_point;
+        Quaternion rot_quat;
         spline->get_pos(
-            ticks_since_start*CALLBACK_TIME_MS/1000.,translate_point);
+            ticks_since_start*CALLBACK_TIME_MS/1000.,translate_point,rot_quat);
 
         glTranslatef(
             translate_point.x,
@@ -350,10 +356,10 @@ void DrawingGlobal::render_frame()
 
 
 
-void DrawingGlobal::draw_control_point(Point3* center_x)
+void DrawingGlobal::draw_control_point(ControlPoint* cp)
 {
     glPushMatrix();
-    glTranslatef(center_x->x,center_x->y,center_x->z);
+    glTranslatef(cp->pt.x,cp->pt.y,cp->pt.z);
     glutSolidTeapot(.5);
     glPopMatrix();
 }

@@ -1,7 +1,7 @@
 COMPILER= g++
 FLAGS= -Wall -g -std=c++0x 
 LIBS= -lglut -lGL -lGLU -I/usr/local/include/
-DEPS= ObjReader.hpp ObjElement.hpp Util.hpp VertexNormal.hpp ControlPoints.hpp
+DEPS= ObjReader.hpp ObjElement.hpp Util.hpp VertexNormal.hpp ControlPoint.hpp Quaternion.hpp
 OBJ_BASIC= ObjElement.o ObjReader.o Util.o
 PROGRAMS= read_file_test load_file_test
 SOS=/usr/lib/libboost_regex.so

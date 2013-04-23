@@ -1,12 +1,12 @@
 #include "Spline.hpp"
 #include "Util.hpp"
-#include "ControlPoints.hpp"
+#include "ControlPoint.hpp"
 #include <iostream>
 
 Spline::Spline(const std::string& filename, float _max_time)
  : max_time(_max_time)
 {
-    ControlPoints::load_control_points(filename, cv);
+    ControlPoint::load_control_points(filename, cv);
     time_slice_width = max_time/(float(cv.size()));
 }
 
@@ -44,7 +44,7 @@ Spline::~Spline()
     time_to_coefficients_z.clear();
 }
 
-void Spline::get_pos(float at_time,Point3& pt)
+void Spline::get_pos(float at_time,Point3& pt,Quaternion& quat)
 {
     // if requested a time past the maximum coefficient vector, then just use
     // the last time in the coefficient vector.
@@ -85,28 +85,28 @@ void Spline::get_pos(float at_time,Point3& pt)
 // populates the time_to_coefficients matrices for each control point
 void Spline::generate_new_coefficients(uint64_t control_point_index)
 {
-    Point3* prev_point = cv[0];
+    Point3 prev_point = cv[0]->pt;
     if (control_point_index != 0)
-        prev_point = cv[control_point_index -1];
+        prev_point = cv[control_point_index -1]->pt;
 
-    Point3* current_point = cv[control_point_index];
+    Point3 current_point = cv[control_point_index]->pt;
 
-    Point3* next_point = cv[control_point_index];
+    Point3 next_point = cv[control_point_index]->pt;
     if ( (control_point_index +1) < cv.size())
-        next_point = cv[control_point_index + 1];
+        next_point = cv[control_point_index + 1]->pt;
 
-    Point3* next_next_point = cv[control_point_index];
+    Point3 next_next_point = cv[control_point_index]->pt;
     if ( (control_point_index + 2) < cv.size())
-        next_next_point = cv[control_point_index + 2];
+        next_next_point = cv[control_point_index + 2]->pt;
     
     Point4 xs (
-        prev_point->x,current_point->x,next_point->x,next_next_point->x);
+        prev_point.x,current_point.x,next_point.x,next_next_point.x);
 
     Point4 ys(
-        prev_point->y,current_point->y,next_point->y,next_next_point->y);
+        prev_point.y,current_point.y,next_point.y,next_next_point.y);
 
     Point4 zs(
-        prev_point->z,current_point->z,next_point->z,next_next_point->z);
+        prev_point.z,current_point.z,next_point.z,next_next_point.z);
 
     Point4* xcoeff = new Point4;
     *xcoeff = point_matrix()* xs;

@@ -61,9 +61,9 @@ private:
     GLfloat ambient[4];
 
     bool initialized;
-
-
-    void draw_control_point(Point3* center_x);
+    bool draw_ctrl_pts;
+    
+    void draw_control_point(ControlPoint* cp);
     void draw_global_coords();
     void initialize();
 };

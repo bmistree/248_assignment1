@@ -11,7 +11,7 @@
 #include "DrawingGlobal.hpp"
 #include "Util.hpp"
 #include "Bitmap.h"
-#include "ControlPoints.hpp"
+#include "ControlPoint.hpp"
 #include "Spline.hpp"
 #include <sstream>
 #define WINDOW_WIDTH 640
