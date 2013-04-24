@@ -52,11 +52,42 @@ DrawingGlobal::DrawingGlobal(
     initialized = false;
 }
 
+void gl_lighting()
+{
+    // hard code the position of the spotlight 5 units above the origin with a
+    // 30 degree cutoff.
+    //GLfloat light_pos[4] = {0.f,30.f,0.f,.5f};
+    GLfloat light_pos[4] = {10.f,30.f,10.f,.5f};
+    GLfloat light_dir[3] = {0.f,-1.f,0.f};
+    GLfloat light_ambient[4] = {.3,.3,.3,1.0f};
+    GLfloat diffuse[4] = {1.0f,1.0f,1.0f,1.0f};    
+    glLightfv(GL_LIGHT0,GL_POSITION,light_pos);
+    glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
+    glLightf(GL_LIGHT0,GL_SPOT_CUTOFF,45.f);
+    glLightfv(GL_LIGHT0,GL_SPOT_DIRECTION,light_dir);
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse);
+    glLightfv(GL_LIGHT0, GL_SPECULAR, diffuse);
+
+    // light1 is an ambient light
+    GLfloat ambientlight[ ] = {0.3, 0.3 , 0.3, 1.0};
+    glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambientlight);
+
+    // enable a spotlight
+    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT0);
+
+    glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT);
+    glEnable(GL_COLOR_MATERIAL);
+}
+
+
 void DrawingGlobal::initialize()
 {
     if (initialized)
         return;
 
+    gl_lighting();
+    
     initialized = true;
     
     glPushMatrix();
@@ -184,32 +215,10 @@ void DrawingGlobal::keyboard_func(unsigned char key,int x, int y)
 
 
 
+
 void DrawingGlobal::draw_global_coords()
 {
-    // hard code the position of the spotlight 5 units above the origin with a
-    // 30 degree cutoff.
-    GLfloat light_pos[4] = {0.f,30.f,0.f,.5f};
-    GLfloat light_dir[3] = {0.f,-1.f,0.f};
-    GLfloat light_ambient[4] = {.3,.3,.3,1.0f};
-    GLfloat diffuse[4] = {1.0f,1.0f,1.0f,1.0f};    
-    glLightfv(GL_LIGHT0,GL_POSITION,light_pos);
-    glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
-    glLightf(GL_LIGHT0,GL_SPOT_CUTOFF,45.f);
-    glLightfv(GL_LIGHT0,GL_SPOT_DIRECTION,light_dir);
-    glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse);
-    glLightfv(GL_LIGHT0, GL_SPECULAR, diffuse);
-
-    // light1 is an ambient light
-    GLfloat ambientlight[ ] = {0.3, 0.3 , 0.3, 1.0};
-    glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambientlight);
-
-    // enable a spotlight
-    glEnable(GL_LIGHTING);
-    glEnable(GL_LIGHT0);
-
-    glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT);
-    glEnable(GL_COLOR_MATERIAL);
-
+    gl_lighting();
 
     // draw ground plane before lookat
     glColor3f(.7f,0.f,0.f);
@@ -272,7 +281,7 @@ void DrawingGlobal::render_frame()
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
     glLoadIdentity();
-
+    
     gluLookAt(
         // eye positioning
         eye.x,eye.y,eye.z,
@@ -310,7 +319,6 @@ void DrawingGlobal::render_frame()
             translate_point.z);
 
         glMultMatrixf(rot_quat.gl_mult_matrix());
-        
     }
 
     if (bm != NULL)

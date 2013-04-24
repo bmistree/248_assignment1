@@ -1,6 +1,8 @@
 #ifndef __QUATERNION_HPP__
 #define __QUATERNION_HPP__
 
+#include <cassert>
+
 class Quaternion
 {
 public:
@@ -10,30 +12,63 @@ public:
         float x_squared = _x*_x;
         float y_squared = _y*_y;
         float z_squared = _z*_z;
+        float w_squared = _w*_w;
+
+
+        if (sqrt(x_squared + y_squared + z_squared + w_squared) > 1.01)
+            assert(false);
+
+        if (sqrt(x_squared + y_squared + z_squared + w_squared) < .99)
+            assert(false);
+
         
         // first row
         mult_data [0] = 1 - 2*y_squared - 2*z_squared;
-        mult_data [1] = 2*_x*_y - 2*_w*_z;
-        mult_data [2] = 2*_x*_z + 2*_w*_y;
-        mult_data [3] = 0;
+        mult_data [4] = 2*_x*_y - 2*_w*_z;
+        mult_data [8] = 2*_x*_z + 2*_w*_y;
+        mult_data [12] = 0;
 
         // second row
-        mult_data[4] = 2*_x*_y + 2*_w*_z;
+        mult_data[1] = 2*_x*_y + 2*_w*_z;
         mult_data[5] = 1 - 2*x_squared - 2*z_squared;
-        mult_data[6] = 2*_y*_z - 2*_w*_x;
-        mult_data[7] = 0;
+        mult_data[9] = 2*_y*_z - 2*_w*_x;
+        mult_data[13] = 0;
 
         // third row
-        mult_data[8] = 2*_x*_z - 2*_w*_y;
-        mult_data[9] = 2*_w*_x + 2*_y*_z;
+        mult_data[2] = 2*_x*_z - 2*_w*_y;
+        mult_data[6] = 2*_w*_x + 2*_y*_z;
         mult_data[10] = 1 - 2*x_squared - 2*y_squared;
-        mult_data[11] = 0;
+        mult_data[14] = 0;
         
         // fourth row
-        mult_data[12] = 0;
-        mult_data[13] = 0;
-        mult_data[14] = 0;
+        mult_data[3] = 0;
+        mult_data[7] = 0;
+        mult_data[11] = 0;
         mult_data[15] = 1;
+        
+        // // first row
+        // mult_data [0] = 1 - 2*y_squared - 2*z_squared;
+        // mult_data [1] = 2*_x*_y - 2*_w*_z;
+        // mult_data [2] = 2*_x*_z + 2*_w*_y;
+        // mult_data [3] = 0;
+
+        // // second row
+        // mult_data[4] = 2*_x*_y + 2*_w*_z;
+        // mult_data[5] = 1 - 2*x_squared - 2*z_squared;
+        // mult_data[6] = 2*_y*_z - 2*_w*_x;
+        // mult_data[7] = 0;
+
+        // // third row
+        // mult_data[8] = 2*_x*_z - 2*_w*_y;
+        // mult_data[9] = 2*_w*_x + 2*_y*_z;
+        // mult_data[10] = 1 - 2*x_squared - 2*y_squared;
+        // mult_data[11] = 0;
+        
+        // // fourth row
+        // mult_data[12] = 0;
+        // mult_data[13] = 0;
+        // mult_data[14] = 0;
+        // mult_data[15] = 1;
     }
     Quaternion(){}
     ~Quaternion(){}

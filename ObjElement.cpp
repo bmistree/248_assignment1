@@ -148,7 +148,7 @@ Face::Face(FaceMap& fmap, VertexNormal::VertNormalMap& vnmap,
     Point3 normal_vec = veca % vecb;
     normal_vec.normalize();
     _face_normal = new VertexNormal(
-        vnmap,normal_vec.x,-normal_vec.y,-normal_vec.z);
+        vnmap,-normal_vec.x,-normal_vec.y,-normal_vec.z);
 
     fmap[_fid] = this;
 
