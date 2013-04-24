@@ -22,6 +22,11 @@ private:
     static const Matrix4& point_matrix();
     void generate_new_coefficients(uint64_t control_point_index);
     
+    void slerp(
+        float normalized_time, const Quaternion& q1,
+        const Quaternion& q2, Quaternion& result);
+
+    
     ControlVec cv;
     float time_slice_width;
     float max_time;

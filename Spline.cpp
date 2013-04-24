@@ -79,7 +79,38 @@ void Spline::get_pos(float at_time,Point3& pt,Quaternion& quat)
 
     pt.z = coeff_z->x + coeff_z->y*normalized_time + coeff_z->z*squared_normalized_time +
         coeff_z->w* cubed_normalized_time;
+
+
+    // load quaternion
+    uint64_t next_control_point_index = control_point_index;
+    if (control_point_index + 1 < cv.size())
+        next_control_point_index = control_point_index + 1;
+
+    if (cv[control_point_index]->quat == cv[next_control_point_index]->quat)
+        quat = cv[control_point_index]->quat;
+    else
+    {
+        slerp(
+            normalized_time,cv[control_point_index]->quat,
+            cv[next_control_point_index]->quat,quat);
+    }
 }
+
+void Spline::slerp(
+    float normalized_time, const Quaternion& q1, const Quaternion& q2, Quaternion& result)
+{
+    float alpha = acos(q1 * q2);
+    float coeff1 = sin( (1 - normalized_time)*alpha)/sin(alpha);
+    float coeff2 = sin( normalized_time*alpha)/sin(alpha);
+
+    result = Quaternion(
+        coeff1*q1.x() + coeff2*q2.x(),
+        coeff1*q1.y() + coeff2*q2.y(),
+        coeff1*q1.z() + coeff2*q2.z(),
+        coeff1*q1.w() + coeff2*q2.w());
+    result.normalize();
+}
+
 
 
 // populates the time_to_coefficients matrices for each control point

@@ -49,6 +49,7 @@ private:
     static bool parse_control_point_line(
         std::string& line,Point3& pos, Quaternion& quat)
     {
+        remove_comment(line);
         trim(line);
         if (line.size() == 0)
             return false;

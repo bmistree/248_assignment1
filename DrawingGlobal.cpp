@@ -308,6 +308,9 @@ void DrawingGlobal::render_frame()
             translate_point.x,
             translate_point.y,
             translate_point.z);
+
+        glMultMatrixf(rot_quat.gl_mult_matrix());
+        
     }
 
     if (bm != NULL)
