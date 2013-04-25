@@ -3,6 +3,8 @@
 #include "ControlPoint.hpp"
 #include <iostream>
 
+#define SPLINE_NUM_SEGMENTS 1000.
+
 Spline::Spline(const std::string& filename, float _max_time)
  : max_time(_max_time)
 {
@@ -18,6 +20,18 @@ const Matrix4& Spline::point_matrix()
         Point4(1, -2.5, 2, -.5),
         Point4(-.5, 1.5, -1.5, .5));
     return point_matrix;
+}
+
+void Spline::generate_spline_path(std::vector<Point3*>& sp_path)
+{
+    Quaternion quat;
+    
+    for (float i = 0; i < SPLINE_NUM_SEGMENTS; ++i)
+    {
+        Point3* pt = new Point3;
+        get_pos(max_time* (i/SPLINE_NUM_SEGMENTS), *pt,quat);
+        sp_path.push_back(pt);
+    }
 }
 
 Spline::~Spline()

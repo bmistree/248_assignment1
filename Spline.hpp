@@ -12,6 +12,8 @@ public:
     Spline(const std::string& filename, float max_time);
     ~Spline();
 
+    void generate_spline_path(std::vector<Point3*>& sp_path);
+    
     void get_pos(float at_time,Point3& pt,Quaternion& quat);
     const ControlVec& control_points()
     {

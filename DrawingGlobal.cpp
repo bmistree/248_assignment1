@@ -18,7 +18,8 @@ DrawingGlobal::DrawingGlobal(
    bm(_bm),
    spline(_spline),
    ticks_since_start(0),
-   draw_ctrl_pts(false)
+   draw_ctrl_pts(false),
+   draw_spline_path(false)
 {
     gl_begin_type = GL_TRIANGLES;
     shading = GL_FLAT;
@@ -89,6 +90,9 @@ void DrawingGlobal::initialize()
     gl_lighting();
     
     initialized = true;
+
+    if (spline != NULL)
+        spline->generate_spline_path(spline_path);
     
     glPushMatrix();
     glMatrixMode(GL_PROJECTION);
@@ -124,7 +128,14 @@ void DrawingGlobal::set_window_width_height(
 }
 
 DrawingGlobal::~DrawingGlobal()
-{}
+{
+    for (std::vector<Point3*>::iterator iter = spline_path.begin();
+         iter != spline_path.end(); ++iter)
+    {
+        delete *iter;
+    }
+    spline_path.clear();
+}
 
 void DrawingGlobal::keyboard_func(unsigned char key,int x, int y)
 {
@@ -183,6 +194,8 @@ void DrawingGlobal::keyboard_func(unsigned char key,int x, int y)
         diffuse[1] -= .1;
         diffuse[2] -= .1;
     }
+    else if (key == 'y')
+        draw_spline_path = ! draw_spline_path;
     else if (key == 'v')
     {
         specular[0] += .1;
@@ -258,6 +271,22 @@ void DrawingGlobal::draw_global_coords()
     }
 }
 
+void DrawingGlobal::gl_draw_spline_path()
+{
+    if (!draw_spline_path)
+        return;
+
+    glLineWidth(2.5);
+    glColor3f(0,.5,0);
+    glBegin(GL_LINE_LOOP);
+    for (std::vector<Point3*>::iterator iter = spline_path.begin();
+         iter != spline_path.end(); ++iter)
+    {
+        glVertex3f( (*iter)->x, (*iter)->y, (*iter)->z);
+    }
+    glEnd();
+}
+
 
 void DrawingGlobal::timer_func()
 {
@@ -290,19 +319,23 @@ void DrawingGlobal::render_frame()
         // camera is oriented so that it's top is in the y direction
         0.f,1.f,0.f);
 
-    // not moving lights + ground plane to follow interpolation itinerary
+    // draw the spline path
+    gl_draw_spline_path();
+    
+    // ground plane to follow interpolation itinerary
     draw_global_coords();
+
     
     if (spline != NULL)
     {
         // draw control points if we're supposed to
         if (draw_ctrl_pts)
         {
+            glColor3f(.5f,.5f,.5f);
             const ControlVec& cv = spline->control_points();
             for (ControlVecCIter citer = cv.begin(); citer != cv.end();
                  ++citer)
             {
-                // Point3* control_point = *citer;
                 draw_control_point(*citer);
             }
         }
@@ -328,6 +361,8 @@ void DrawingGlobal::render_frame()
         glBindTexture(GL_TEXTURE_2D, texture_id);
     }
 
+
+    glColor3f(0.f,0.f,.7f);
     for (Face::FaceMapCIter face_citer = fmap->begin();
          face_citer != fmap->end(); ++face_citer)
     {

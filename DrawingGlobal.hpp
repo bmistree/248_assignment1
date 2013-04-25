@@ -62,10 +62,13 @@ private:
 
     bool initialized;
     bool draw_ctrl_pts;
+    bool draw_spline_path;
+    std::vector<Point3*> spline_path;
     
     void draw_control_point(ControlPoint* cp);
     void draw_global_coords();
     void initialize();
+    void gl_draw_spline_path();
 };
 
 #endif
